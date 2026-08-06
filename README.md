@@ -13,7 +13,7 @@
 <h3 align="center">🧑‍💻 About Me</h3>
 <p align="center">
   🔐 Security researcher & pentester<br/>
-  🧠 Building Forensight — host-based intrusion detection & cloud VM forensics<br/>
+  🧠 Building Forensight  host-based intrusion detection & cloud VM forensics<br/>
   🐍 Python + Bash automation<br/>
   📡 Root-causing bugs, not just patching them
 </p>
@@ -48,9 +48,8 @@
 
 <h3 align="center">Currently working on</h3>
 <p align="center">
-  🔬 <b>Forensight</b> — HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
-  🌐 <b>SiteZap</b> — freelance web design micro-service with automated template customization<br/>
-  📝 Writing dev-log posts on <a href="https://muzasio.hashnode.dev">Hashnode</a>
+   <b>Forensight</b> — HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
+   Writing dev-log posts on <a href="https://muzasio.hashnode.dev">Hashnode</a>
 </p>
 
 <p align="center">
