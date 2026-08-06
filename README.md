@@ -1,26 +1,22 @@
 <p align="center">
   <a href="https://git.io/typing-svg">
     <img
-      src="https://readme-typing-svg.herokuapp.com?color=39FF14&center=true&vCenter=true&width=1200&height=200&fontSize=40&lines=%24+whoami+%E2%86%92+Muzasio;root%40cyberlab:~%23+Cybersecurity+Professional;%3E+cat+%2Fetc%2Fskills+%E2%86%92+Blue+Team+%7C+Red+Team;%3E+.%2Fscan.sh+running;Access+Granted...;Pentester+%7C+SOC+Analyst+%7C+Coder"
+      src="https://readme-typing-svg.herokuapp.com?color=39FF14&center=true&vCenter=true&width=1200&height=200&fontSize=40&lines=%24+whoami+%E2%86%92+Muzasio;root%40cyberlab:~%23+Security+Researcher;%3E+cat+%2Fetc%2Fskills+%E2%86%92+Pentesting+%7C+Python+%7C+Bash;%3E+.%2Fscan.sh+running;Access+Granted...;Researcher+%7C+Pentester+%7C+Builder"
       alt="Typing SVG"
     />
   </a>
 </p>
+
 <!-- Profile views -->
 <p align="right"> <img src="https://komarev.com/ghpvc/?username=muzasio&label=Profile%20views&color=0e75b6&style=flat" alt="muzasio" /> </p>
-<p align="left">
+
+<h3 align="center">🧑‍💻 About Me</h3>
+<p align="center">
+  🔐 Security researcher & pentester<br/>
+  🧠 Building Forensight — host-based intrusion detection & cloud VM forensics<br/>
+  🐍 Python + Bash automation<br/>
+  📡 Root-causing bugs, not just patching them
 </p>
-
-<div align="center">
-
-### 🧑‍💻 About Me  
- 🔐 Ethical Hacker in training  
- 🛡️ SOC / Blue Team learner  
- 🐍 Python + Bash automation  
- 📡 Always exploring networks & security  
-
-</div>
-
 
 <h3 align="center">Languages & Tools</h3>
 <p align="center">
@@ -50,14 +46,22 @@
   <img src="https://img.shields.io/badge/Docker-black?style=for-the-badge&logo=docker&logoColor=00aaff" />
 </p>
 
+<h3 align="center">Currently working on</h3>
+<p align="center">
+  🔬 <b>Forensight</b> — HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
+  🌐 <b>SiteZap</b> — freelance web design micro-service with automated template customization<br/>
+  📝 Writing dev-log posts on <a href="https://muzasio.hashnode.dev">Hashnode</a>
+</p>
 
 <p align="center">
   <!-- GitHub Stats -->
   <img src="https://github-readme-stats.vercel.app/api?username=muzasio&show_icons=true&locale=en&bg_color=000000&title_color=39ff14&text_color=00ff00&icon_color=39ff14&border_color=000000" alt="muzasio stats" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=muzasio&theme=matrix" alt="trophy" /></a>
+</p>
 
-[![trophy](https://github-profile-trophy.vercel.app/?username=muzasio&theme=matrix)](https://github.com/ryo-ma/github-profile-trophy)
-
-
-<img src="https://raw.githubusercontent.com/Ad1tyaPatel/Ad1tyaPatel/output/snake.svg" width = 1500 alt="Snake animation" />
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg" width="1500" alt="Snake animation" />
+</p>
