@@ -49,7 +49,6 @@
 <h3 align="center">Currently working on</h3>
 <p align="center">
    <b>Forensight</b> — HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
-   Writing dev-log posts on <a href="https://muzasio.hashnode.dev">Hashnode</a>
 </p>
 
 <p align="center">
