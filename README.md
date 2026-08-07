@@ -13,7 +13,7 @@
 <h3 align="center">🧑‍💻 About Me</h3>
 <p align="center">
   🔐 Security researcher & pentester<br/>
-  🧠 Building Forensight  host-based intrusion detection & cloud VM forensics<br/>
+  🧠 Building Forensight: host-based intrusion detection & cloud VM forensics<br/>
   🐍 Python + Bash automation<br/>
   📡 Root-causing bugs, not just patching them
 </p>
@@ -48,7 +48,7 @@
 
 <h3 align="center">Currently working on</h3>
 <p align="center">
-   <b>Forensight</b> — HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
+  <b>Forensight</b>: HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
 </p>
 
 <p align="center">
@@ -61,5 +61,5 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg" width="1500" alt="Snake animation" />
+  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/snake.svg" width="1500" alt="Snake animation" />
 </p>
