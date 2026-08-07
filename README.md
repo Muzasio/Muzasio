@@ -66,3 +66,8 @@
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg" />
   <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg" width="100%" height="auto" />
 </picture>
+
+
+<p align="center">
+  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg" />
+</p>
