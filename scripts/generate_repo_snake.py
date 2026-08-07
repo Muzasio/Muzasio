@@ -9,8 +9,8 @@ CARD_W = 150
 CARD_H = 80
 GAP = 14
 PAD = 24
-PER_CELL = 0.45
-SNAKE_SEGMENTS = 5
+PER_CELL = 0.55
+BODY_FRACTION = 0.14
 FONT = "'Courier New', monospace"
 
 BG = "#0d1117"
@@ -18,6 +18,7 @@ CARD_FILL = "#161b22"
 CARD_BORDER = "#30363d"
 ACCENT = "#39ff14"
 ACCENT_DIM = "#1f8f0c"
+ACCENT_FLASH = "#baffb0"
 TEXT_PRIMARY = "#e6edf3"
 TEXT_DIM = "#8b949e"
 
@@ -26,6 +27,20 @@ LANG_COLOR = {
     "JavaScript": "#f1e05a", "HTML": "#e34c26", "CSS": "#563d7c",
     "C": "#555555", "TypeScript": "#3178c6", "Jupyter Notebook": "#DA5B0B",
 }
+
+SAMPLE_REPOS = [
+    {"name": "Muzasio", "language": "Python", "stars": 1},
+    {"name": "Cachy-Os", "language": "N/A", "stars": 0},
+    {"name": "gdl2pdf", "language": "Python", "stars": 0},
+    {"name": "Android", "language": "Shell", "stars": 0},
+    {"name": "Github-Repo-Uploader", "language": "Shell", "stars": 0},
+    {"name": "KVM_Backup_Manager", "language": "Shell", "stars": 1},
+    {"name": "Lab-System-Logs", "language": "N/A", "stars": 0},
+    {"name": "Video-Caption-gen", "language": "Python", "stars": 1},
+    {"name": "Per-App-Vpn-Linux", "language": "N/A", "stars": 0},
+    {"name": "bash-log-inspector", "language": "Shell", "stars": 0},
+    {"name": "video-batch-conv", "language": "Shell", "stars": 0},
+]
 
 
 def fetch_repos(user, token=None, limit=24):
@@ -37,25 +52,18 @@ def fetch_repos(user, token=None, limit=24):
         req.add_header("Authorization", f"Bearer {token}")
     with urllib.request.urlopen(req, timeout=15) as resp:
         data = json.load(resp)
-    repos = [r for r in data if not r.get("fork") and not r.get("private")]
-    repos = repos[:limit]
+    repos = [r for r in data if not r.get("fork") and not r.get("private")][:limit]
     return [
-        {
-            "name": r["name"],
-            "language": r.get("language") or "N/A",
-            "stars": r.get("stargazers_count", 0),
-        }
+        {"name": r["name"], "language": r.get("language") or "N/A", "stars": r.get("stargazers_count", 0)}
         for r in repos
     ]
 
 
-SAMPLE_REPOS = [
-    {"name": "Cybersecurity-Resources", "language": "Shell", "stars": 3},
-    {"name": "System_Utils", "language": "Shell", "stars": 1},
-]
+def esc(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def build_path(n, cols):
+def grid_centers(n, cols):
     rows = math.ceil(n / cols)
     points = []
     for row in range(rows):
@@ -66,23 +74,34 @@ def build_path(n, cols):
                 continue
             cx = PAD + col * (CARD_W + GAP) + CARD_W / 2
             cy = PAD + row * (CARD_H + GAP) + CARD_H / 2
-            points.append((cx, cy, row, col, idx))
+            points.append((cx, cy))
     return points, rows
 
 
-def esc(s):
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+def catmull_rom_to_bezier(points):
+    """Convert waypoints into a smooth cubic-bezier path string (rounded corners)."""
+    pts = [points[0]] + points + [points[-1]]
+    d = f"M {pts[1][0]:.2f},{pts[1][1]:.2f} "
+    for i in range(1, len(pts) - 2):
+        p0, p1, p2, p3 = pts[i - 1], pts[i], pts[i + 1], pts[i + 2]
+        c1x = p1[0] + (p2[0] - p0[0]) / 6
+        c1y = p1[1] + (p2[1] - p0[1]) / 6
+        c2x = p2[0] - (p3[0] - p1[0]) / 6
+        c2y = p2[1] - (p3[1] - p1[1]) / 6
+        d += f"C {c1x:.2f},{c1y:.2f} {c2x:.2f},{c2y:.2f} {p2[0]:.2f},{p2[1]:.2f} "
+    return d.strip()
 
 
 def generate(repos, out_path):
     n = len(repos)
-    points, rows = build_path(n, COLS)
+    centers, rows = grid_centers(n, COLS)
     width = PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP
     height = PAD * 2 + rows * CARD_H + (rows - 1) * GAP
 
-    total_cells = len(points)
-    total_dur = total_cells * PER_CELL + SNAKE_SEGMENTS * PER_CELL
-    path_d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y, *_ in points)
+    path_d = catmull_rom_to_bezier(centers)
+    total_dur = n * PER_CELL
+    path_len_units = 1000
+    body_len = path_len_units * BODY_FRACTION
 
     svg = []
     svg.append(
@@ -91,32 +110,50 @@ def generate(repos, out_path):
     )
     svg.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="{BG}" rx="10"/>')
 
-    for x, y, row, col, idx in points:
+    # --- cards, each pops when the snake head reaches it ---
+    for idx, (cx0, cy0) in enumerate(centers):
         r = repos[idx]
-        cx = x - CARD_W / 2
-        cy = y - CARD_H / 2
-        reveal_time = (idx + SNAKE_SEGMENTS) * PER_CELL
-        rf = min(reveal_time / total_dur, 0.97)
-        rf2 = min(rf + 0.02, 0.99)
+        cx, cy = cx0 - CARD_W / 2, cy0 - CARD_H / 2
+        eat_t = (idx + 0.5) * PER_CELL
+        pre = max(eat_t - 0.12, 0)
+        pop = eat_t
+        settle = min(eat_t + 0.28, total_dur)
+        rf_pre = pre / total_dur
+        rf_pop = pop / total_dur
+        rf_settle = settle / total_dur
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
 
-        svg.append(f'<g opacity="0">')
+        svg.append(f'<g transform-origin="{cx0:.1f}px {cy0:.1f}px" opacity="0">')
         svg.append(
-            f'<animate attributeName="opacity" dur="{total_dur:.2f}s" '
-            f'repeatCount="indefinite" calcMode="linear" '
-            f'keyTimes="0;{rf:.4f};{rf2:.4f};1" values="0;0;1;1"/>'
+            '<animate attributeName="opacity" dur="{:.3f}s" repeatCount="indefinite" '
+            'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="0;0;1;1"/>'.format(
+                total_dur, rf_pre, rf_pre + 0.0001
+            )
+        )
+        svg.append(
+            '<animateTransform attributeName="transform" type="scale" additive="sum" '
+            'dur="{:.3f}s" repeatCount="indefinite" calcMode="spline" '
+            'keyTimes="0;{:.4f};{:.4f};{:.4f};1" values="1;1;1.18;1;1" '
+            'keySplines="0.4 0 0.6 1;0.4 0 0.2 1;0.4 0 0.2 1;0 0 1 1"/>'.format(
+                total_dur, rf_pre, rf_pop, rf_settle
+            )
         )
         svg.append(
             f'<rect x="{cx:.1f}" y="{cy:.1f}" width="{CARD_W}" height="{CARD_H}" rx="8" '
-            f'fill="{CARD_FILL}" stroke="{ACCENT_DIM}" stroke-width="1.5"/>'
+            f'fill="{CARD_FILL}" stroke="{ACCENT_DIM}" stroke-width="1.5">'
         )
+        svg.append(
+            '<animate attributeName="stroke" dur="{:.3f}s" repeatCount="indefinite" '
+            'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="{};{};{};{}"/>'.format(
+                total_dur, rf_pop, rf_settle, ACCENT_DIM, ACCENT_FLASH, ACCENT_FLASH, ACCENT_DIM
+            )
+        )
+        svg.append("</rect>")
         svg.append(
             f'<text x="{cx+10:.1f}" y="{cy+24:.1f}" font-family="{FONT}" font-size="13" '
             f'font-weight="bold" fill="{TEXT_PRIMARY}">{esc(r["name"][:16])}</text>'
         )
-        svg.append(
-            f'<circle cx="{cx+16:.1f}" cy="{cy+42:.1f}" r="4" fill="{lang_color}"/>'
-        )
+        svg.append(f'<circle cx="{cx+16:.1f}" cy="{cy+42:.1f}" r="4" fill="{lang_color}"/>')
         svg.append(
             f'<text x="{cx+26:.1f}" y="{cy+46:.1f}" font-family="{FONT}" font-size="11" '
             f'fill="{TEXT_DIM}">{esc(r["language"][:14])}</text>'
@@ -127,28 +164,45 @@ def generate(repos, out_path):
         )
         svg.append("</g>")
 
-    for seg in range(SNAKE_SEGMENTS):
-        begin = seg * PER_CELL
-        radius = 9 if seg == 0 else max(7 - seg * 0.6, 3)
-        fill = ACCENT if seg == 0 else BG
-        stroke = ACCENT if seg > 0 else "none"
-        group = ['<g opacity="0">']
-        group.append(
-            f'<animate attributeName="opacity" begin="0s" dur="0.01s" fill="freeze" values="1"/>'
+    # --- continuous snake body: a single stroke sliding along the smooth path ---
+    svg.append(
+        f'<path d="{path_d}" fill="none" stroke="{ACCENT_DIM}" stroke-width="12" '
+        f'stroke-linecap="round" stroke-linejoin="round" opacity="0.35" pathLength="{path_len_units}"/>'
+    )
+    svg.append(
+        f'<path d="{path_d}" fill="none" stroke="{ACCENT}" stroke-width="12" '
+        f'stroke-linecap="round" stroke-linejoin="round" pathLength="{path_len_units}" '
+        f'stroke-dasharray="{body_len:.1f} {path_len_units - body_len:.1f}">'
+    )
+    svg.append(
+        '<animate attributeName="stroke-dashoffset" dur="{:.3f}s" repeatCount="indefinite" '
+        'calcMode="linear" values="{};{}"/>'.format(
+            total_dur, path_len_units + body_len, -body_len
         )
-        inner = f'<circle cx="0" cy="0" r="{radius:.1f}" fill="{fill}" stroke="{stroke}" stroke-width="2"/>'
-        if seg == 0:
-            inner += (
-                f'<circle cx="-3.5" cy="-2.5" r="1.4" fill="{BG}"/>'
-                f'<circle cx="3.5" cy="-2.5" r="1.4" fill="{BG}"/>'
-            )
-        group.append(inner)
-        group.append(
-            f'<animateMotion dur="{total_dur:.2f}s" begin="{begin:.2f}s" '
-            f'repeatCount="indefinite" rotate="auto" path="{path_d}"/>'
-        )
-        group.append("</g>")
-        svg.append("".join(group))
+    )
+    svg.append("</path>")
+
+    # --- head marker, riding the front of the sliding body ---
+    svg.append('<g>')
+    svg.append('<circle r="9" fill="{}">'.format(ACCENT))
+    svg.append(
+        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+        f'rotate="auto" path="{path_d}"/>'
+    )
+    svg.append("</circle>")
+    svg.append(f'<circle cx="-3.5" cy="-2.5" r="1.4" fill="{BG}">')
+    svg.append(
+        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+        f'rotate="auto" path="{path_d}"/>'
+    )
+    svg.append("</circle>")
+    svg.append(f'<circle cx="3.5" cy="-2.5" r="1.4" fill="{BG}">')
+    svg.append(
+        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+        f'rotate="auto" path="{path_d}"/>'
+    )
+    svg.append("</circle>")
+    svg.append("</g>")
 
     svg.append("</svg>")
 
