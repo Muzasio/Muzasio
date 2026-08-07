@@ -10,6 +10,9 @@ CARD_H = 80
 GAP = 14
 PAD = 24
 PER_CELL = 0.55
+SEG_SIZE = 12
+SEG_COUNT = 5
+SEG_GAP_T = 0.09
 FONT = "'Courier New', monospace"
 
 BG = "#0d1117"
@@ -19,6 +22,7 @@ ACCENT_DIM = "#1f8f0c"
 ACCENT_FLASH = "#baffb0"
 TEXT_PRIMARY = "#e6edf3"
 TEXT_DIM = "#8b949e"
+BORDER_DIM = "#30363d"
 
 LANG_COLOR = {
     "Python": "#3572A5", "C++": "#f34b7d", "Shell": "#89e051",
@@ -61,7 +65,10 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def grid_positions(n, cols):
+def grid_centers(n, cols):
+    """Boustrophedon (serpentine) order: last cell of each row lines up
+    vertically with the first cell of the next row, so connecting centers
+    with straight lines is already an orthogonal, right-angle-only path."""
     rows = math.ceil(n / cols)
     points = []
     for row in range(rows):
@@ -70,18 +77,45 @@ def grid_positions(n, cols):
             idx = row * cols + (col if row % 2 == 0 else cols - 1 - col)
             if idx >= n:
                 continue
-            x = PAD + col * (CARD_W + GAP)
-            y = PAD + row * (CARD_H + GAP)
-            points.append((x, y))
+            cx = PAD + col * (CARD_W + GAP) + CARD_W / 2
+            cy = PAD + row * (CARD_H + GAP) + CARD_H / 2
+            points.append((cx, cy))
     return points, rows
+
+
+def straight_path(points):
+    d = f"M {points[0][0]:.2f},{points[0][1]:.2f} "
+    for x, y in points[1:]:
+        d += f"L {x:.2f},{y:.2f} "
+    return d.strip()
+
+
+def cumulative_key_points(points):
+    """keyPoints (0-1 along total path length) at each vertex, paired with
+    uniform keyTimes (0-1 by index), so the head arrives at every card at
+    exactly idx * PER_CELL regardless of uneven segment lengths."""
+    dists = [0.0]
+    for i in range(1, len(points)):
+        (x0, y0), (x1, y1) = points[i - 1], points[i]
+        dists.append(dists[-1] + math.hypot(x1 - x0, y1 - y0))
+    total = dists[-1] if dists[-1] > 0 else 1.0
+    key_points = [d / total for d in dists]
+    n = len(points)
+    key_times = [i / (n - 1) for i in range(n)]
+    return key_points, key_times
 
 
 def generate(repos, out_path):
     n = len(repos)
-    positions, rows = grid_positions(n, COLS)
+    centers, rows = grid_centers(n, COLS)
     width = PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP
     height = PAD * 2 + rows * CARD_H + (rows - 1) * GAP
-    total_dur = n * PER_CELL
+    total_dur = (n - 1) * PER_CELL if n > 1 else PER_CELL
+
+    path_d = straight_path(centers)
+    key_points, key_times = cumulative_key_points(centers)
+    kp_str = ";".join(f"{k:.5f}" for k in key_points)
+    kt_str = ";".join(f"{k:.5f}" for k in key_times)
 
     svg = []
     svg.append(
@@ -90,55 +124,82 @@ def generate(repos, out_path):
     )
     svg.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="{BG}" rx="10"/>')
 
-    for idx, (cx, cy) in enumerate(positions):
+    # cards: start dim, get "eaten" (lit up, one hard flash then settle bright)
+    # exactly when the snake head reaches their center
+    for idx, (cx0, cy0) in enumerate(centers):
         r = repos[idx]
-        reveal_t = idx * PER_CELL
-        flash_end_t = min(reveal_t + 0.30, total_dur)
-        rf_reveal = reveal_t / total_dur
-        rf_flash_end = flash_end_t / total_dur
-        cx0, cy0 = cx + CARD_W / 2, cy + CARD_H / 2
+        cx, cy = cx0 - CARD_W / 2, cy0 - CARD_H / 2
+        eat_t = idx * PER_CELL
+        settle_t = min(eat_t + 0.22, total_dur)
+        rf_eat = eat_t / total_dur if total_dur else 0
+        rf_settle = settle_t / total_dur if total_dur else 0
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
 
-        svg.append(f'<g transform-origin="{cx0:.1f}px {cy0:.1f}px" opacity="0">')
-        svg.append(
-            '<animate attributeName="opacity" dur="{:.3f}s" repeatCount="indefinite" '
-            'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="0;0;1;1"/>'.format(
-                total_dur, rf_reveal, rf_reveal + 0.0001
-            )
-        )
+        svg.append(f'<g transform-origin="{cx0:.1f}px {cy0:.1f}px">')
         svg.append(
             '<animateTransform attributeName="transform" type="scale" additive="sum" '
-            'dur="{:.3f}s" repeatCount="indefinite" calcMode="spline" '
-            'keyTimes="0;{:.4f};{:.4f};1" values="0.85;0.85;1;1" '
-            'keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0 0 1 1"/>'.format(
-                total_dur, rf_reveal, rf_reveal + 0.05
+            'dur="{:.3f}s" repeatCount="indefinite" calcMode="discrete" '
+            'keyTimes="0;{:.5f};{:.5f};1" values="1;1;1.12;1"/>'.format(
+                total_dur, rf_eat, rf_eat + 0.0001
             )
         )
         svg.append(
             f'<rect x="{cx:.1f}" y="{cy:.1f}" width="{CARD_W}" height="{CARD_H}" rx="8" '
-            f'fill="{CARD_FILL}" stroke="{ACCENT_DIM}" stroke-width="1.5">'
+            f'fill="{CARD_FILL}" stroke="{BORDER_DIM}" stroke-width="1.5">'
         )
         svg.append(
             '<animate attributeName="stroke" dur="{:.3f}s" repeatCount="indefinite" '
-            'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="{};{};{};{}"/>'.format(
-                total_dur, rf_reveal, rf_flash_end, ACCENT_DIM, ACCENT_FLASH, ACCENT_FLASH, ACCENT_DIM
+            'calcMode="discrete" keyTimes="0;{:.5f};{:.5f};1" values="{};{};{};{}"/>'.format(
+                total_dur, rf_eat, rf_settle, BORDER_DIM, ACCENT_FLASH, ACCENT_FLASH, ACCENT_DIM
             )
         )
         svg.append("</rect>")
         svg.append(
             f'<text x="{cx+10:.1f}" y="{cy+24:.1f}" font-family="{FONT}" font-size="13" '
-            f'font-weight="bold" fill="{TEXT_PRIMARY}">{esc(r["name"][:16])}</text>'
+            f'font-weight="bold" fill="{TEXT_DIM}">'
         )
-        svg.append(f'<circle cx="{cx+16:.1f}" cy="{cy+42:.1f}" r="4" fill="{lang_color}"/>')
+        svg.append(
+            '<animate attributeName="fill" dur="{:.3f}s" repeatCount="indefinite" '
+            'calcMode="discrete" keyTimes="0;{:.5f};1" values="{};{}"/>'.format(
+                total_dur, rf_eat, TEXT_DIM, TEXT_PRIMARY
+            )
+        )
+        svg.append(f'{esc(r["name"][:16])}</text>')
+        svg.append(f'<circle cx="{cx+16:.1f}" cy="{cy+42:.1f}" r="4" fill="{BORDER_DIM}">')
+        svg.append(
+            '<animate attributeName="fill" dur="{:.3f}s" repeatCount="indefinite" '
+            'calcMode="discrete" keyTimes="0;{:.5f};1" values="{};{}"/>'.format(
+                total_dur, rf_eat, BORDER_DIM, lang_color
+            )
+        )
+        svg.append("</circle>")
         svg.append(
             f'<text x="{cx+26:.1f}" y="{cy+46:.1f}" font-family="{FONT}" font-size="11" '
             f'fill="{TEXT_DIM}">{esc(r["language"][:14])}</text>'
         )
+        svg.append(f'<text x="{cx+10:.1f}" y="{cy+64:.1f}" font-family="{FONT}" font-size="11" fill="{BORDER_DIM}">')
         svg.append(
-            f'<text x="{cx+10:.1f}" y="{cy+64:.1f}" font-family="{FONT}" font-size="11" '
-            f'fill="{ACCENT}">&#9733; {r["stars"]}</text>'
+            '<animate attributeName="fill" dur="{:.3f}s" repeatCount="indefinite" '
+            'calcMode="discrete" keyTimes="0;{:.5f};1" values="{};{}"/>'.format(
+                total_dur, rf_eat, BORDER_DIM, ACCENT
+            )
         )
+        svg.append(f'&#9733; {r["stars"]}</text>')
         svg.append("</g>")
+
+    # snake: head + trailing body segments, all locked to the same straight
+    # orthogonal path via identical keyPoints/keyTimes, offset only by begin=
+    for seg in range(SEG_COUNT):
+        fill = ACCENT if seg == 0 else ACCENT_DIM
+        size = SEG_SIZE if seg == 0 else SEG_SIZE - 2
+        delay = seg * SEG_GAP_T
+        svg.append(f'<rect x="{-size/2:.1f}" y="{-size/2:.1f}" width="{size}" height="{size}" rx="3" fill="{fill}">')
+        svg.append(
+            f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+            f'begin="-{delay:.3f}s" calcMode="linear" '
+            f'keyPoints="{kp_str}" keyTimes="{kt_str}" path="{path_d}"/>'
+        )
+        svg.append("</rect>")
 
     svg.append("</svg>")
 
