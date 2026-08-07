@@ -10,12 +10,10 @@ CARD_H = 80
 GAP = 14
 PAD = 24
 PER_CELL = 0.55
-BODY_FRACTION = 0.14
 FONT = "'Courier New', monospace"
 
 BG = "#0d1117"
 CARD_FILL = "#161b22"
-CARD_BORDER = "#30363d"
 ACCENT = "#39ff14"
 ACCENT_DIM = "#1f8f0c"
 ACCENT_FLASH = "#baffb0"
@@ -63,7 +61,7 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def grid_centers(n, cols):
+def grid_positions(n, cols):
     rows = math.ceil(n / cols)
     points = []
     for row in range(rows):
@@ -72,36 +70,18 @@ def grid_centers(n, cols):
             idx = row * cols + (col if row % 2 == 0 else cols - 1 - col)
             if idx >= n:
                 continue
-            cx = PAD + col * (CARD_W + GAP) + CARD_W / 2
-            cy = PAD + row * (CARD_H + GAP) + CARD_H / 2
-            points.append((cx, cy))
+            x = PAD + col * (CARD_W + GAP)
+            y = PAD + row * (CARD_H + GAP)
+            points.append((x, y))
     return points, rows
-
-
-def catmull_rom_to_bezier(points):
-    """Convert waypoints into a smooth cubic-bezier path string (rounded corners)."""
-    pts = [points[0]] + points + [points[-1]]
-    d = f"M {pts[1][0]:.2f},{pts[1][1]:.2f} "
-    for i in range(1, len(pts) - 2):
-        p0, p1, p2, p3 = pts[i - 1], pts[i], pts[i + 1], pts[i + 2]
-        c1x = p1[0] + (p2[0] - p0[0]) / 6
-        c1y = p1[1] + (p2[1] - p0[1]) / 6
-        c2x = p2[0] - (p3[0] - p1[0]) / 6
-        c2y = p2[1] - (p3[1] - p1[1]) / 6
-        d += f"C {c1x:.2f},{c1y:.2f} {c2x:.2f},{c2y:.2f} {p2[0]:.2f},{p2[1]:.2f} "
-    return d.strip()
 
 
 def generate(repos, out_path):
     n = len(repos)
-    centers, rows = grid_centers(n, COLS)
+    positions, rows = grid_positions(n, COLS)
     width = PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP
     height = PAD * 2 + rows * CARD_H + (rows - 1) * GAP
-
-    path_d = catmull_rom_to_bezier(centers)
     total_dur = n * PER_CELL
-    path_len_units = 1000
-    body_len = path_len_units * BODY_FRACTION
 
     svg = []
     svg.append(
@@ -110,32 +90,28 @@ def generate(repos, out_path):
     )
     svg.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="{BG}" rx="10"/>')
 
-    # --- cards, each pops when the snake head reaches it ---
-    for idx, (cx0, cy0) in enumerate(centers):
+    for idx, (cx, cy) in enumerate(positions):
         r = repos[idx]
-        cx, cy = cx0 - CARD_W / 2, cy0 - CARD_H / 2
-        eat_t = (idx + 0.5) * PER_CELL
-        pre = max(eat_t - 0.12, 0)
-        pop = eat_t
-        settle = min(eat_t + 0.28, total_dur)
-        rf_pre = pre / total_dur
-        rf_pop = pop / total_dur
-        rf_settle = settle / total_dur
+        reveal_t = idx * PER_CELL
+        flash_end_t = min(reveal_t + 0.30, total_dur)
+        rf_reveal = reveal_t / total_dur
+        rf_flash_end = flash_end_t / total_dur
+        cx0, cy0 = cx + CARD_W / 2, cy + CARD_H / 2
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
 
         svg.append(f'<g transform-origin="{cx0:.1f}px {cy0:.1f}px" opacity="0">')
         svg.append(
             '<animate attributeName="opacity" dur="{:.3f}s" repeatCount="indefinite" '
             'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="0;0;1;1"/>'.format(
-                total_dur, rf_pre, rf_pre + 0.0001
+                total_dur, rf_reveal, rf_reveal + 0.0001
             )
         )
         svg.append(
             '<animateTransform attributeName="transform" type="scale" additive="sum" '
             'dur="{:.3f}s" repeatCount="indefinite" calcMode="spline" '
-            'keyTimes="0;{:.4f};{:.4f};{:.4f};1" values="1;1;1.18;1;1" '
-            'keySplines="0.4 0 0.6 1;0.4 0 0.2 1;0.4 0 0.2 1;0 0 1 1"/>'.format(
-                total_dur, rf_pre, rf_pop, rf_settle
+            'keyTimes="0;{:.4f};{:.4f};1" values="0.85;0.85;1;1" '
+            'keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0 0 1 1"/>'.format(
+                total_dur, rf_reveal, rf_reveal + 0.05
             )
         )
         svg.append(
@@ -145,7 +121,7 @@ def generate(repos, out_path):
         svg.append(
             '<animate attributeName="stroke" dur="{:.3f}s" repeatCount="indefinite" '
             'calcMode="discrete" keyTimes="0;{:.4f};{:.4f};1" values="{};{};{};{}"/>'.format(
-                total_dur, rf_pop, rf_settle, ACCENT_DIM, ACCENT_FLASH, ACCENT_FLASH, ACCENT_DIM
+                total_dur, rf_reveal, rf_flash_end, ACCENT_DIM, ACCENT_FLASH, ACCENT_FLASH, ACCENT_DIM
             )
         )
         svg.append("</rect>")
@@ -163,46 +139,6 @@ def generate(repos, out_path):
             f'fill="{ACCENT}">&#9733; {r["stars"]}</text>'
         )
         svg.append("</g>")
-
-    # --- continuous snake body: a single stroke sliding along the smooth path ---
-    svg.append(
-        f'<path d="{path_d}" fill="none" stroke="{ACCENT_DIM}" stroke-width="12" '
-        f'stroke-linecap="round" stroke-linejoin="round" opacity="0.35" pathLength="{path_len_units}"/>'
-    )
-    svg.append(
-        f'<path d="{path_d}" fill="none" stroke="{ACCENT}" stroke-width="12" '
-        f'stroke-linecap="round" stroke-linejoin="round" pathLength="{path_len_units}" '
-        f'stroke-dasharray="{body_len:.1f} {path_len_units - body_len:.1f}">'
-    )
-    svg.append(
-        '<animate attributeName="stroke-dashoffset" dur="{:.3f}s" repeatCount="indefinite" '
-        'calcMode="linear" values="{};{}"/>'.format(
-            total_dur, path_len_units + body_len, -body_len
-        )
-    )
-    svg.append("</path>")
-
-    # --- head marker, riding the front of the sliding body ---
-    svg.append('<g>')
-    svg.append('<circle r="9" fill="{}">'.format(ACCENT))
-    svg.append(
-        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
-        f'rotate="auto" path="{path_d}"/>'
-    )
-    svg.append("</circle>")
-    svg.append(f'<circle cx="-3.5" cy="-2.5" r="1.4" fill="{BG}">')
-    svg.append(
-        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
-        f'rotate="auto" path="{path_d}"/>'
-    )
-    svg.append("</circle>")
-    svg.append(f'<circle cx="3.5" cy="-2.5" r="1.4" fill="{BG}">')
-    svg.append(
-        f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
-        f'rotate="auto" path="{path_d}"/>'
-    )
-    svg.append("</circle>")
-    svg.append("</g>")
 
     svg.append("</svg>")
 
