@@ -56,9 +56,16 @@
   <img src="https://github-readme-stats.vercel.app/api?username=muzasio&show_icons=true&locale=en&bg_color=000000&title_color=39ff14&text_color=00ff00&icon_color=39ff14&border_color=000000" alt="muzasio stats" />
 </p>
 
+
 <p align="center">
   <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=muzasio&theme=matrix" alt="trophy" /></a>
 </p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hassan/hassan/output/github-contribution-grid-snake-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hassan/hassan/output/github-contribution-grid-snake.svg" />
+  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/hassan/hassan/output/github-contribution-grid-snake.svg" />
+</picture>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/snake.svg" width="1500" alt="Snake animation" />
