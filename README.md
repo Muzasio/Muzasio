@@ -67,6 +67,4 @@
   <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg" />
 </picture>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/snake.svg" width="1500" alt="Snake animation" />
-</p>
+
