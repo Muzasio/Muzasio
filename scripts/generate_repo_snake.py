@@ -100,14 +100,24 @@ def generate(out_path, seed=None):
         if is_head:
             svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{-ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
             svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
+            tongue_base_x = rx - 2
+            svg.append(f'<g transform-origin="{tongue_base_x:.1f}px 0px">')
             svg.append(
-                f'<path d="M {rx-2:.1f},0 L {rx+14:.1f},0" stroke="#ff5555" '
-                f'stroke-width="1.6" stroke-linecap="round"/>'
+                '<animateTransform attributeName="transform" type="scale" '
+                'dur="1.4s" repeatCount="indefinite" calcMode="linear" '
+                'keyTimes="0;0.58;0.66;0.8;0.88;1" '
+                'values="0,1;0,1;1,1;1,1;0,1;0,1"/>'
             )
             svg.append(
-                f'<path d="M {rx+10:.1f},0 L {rx+16:.1f},-3.5 M {rx+10:.1f},0 L {rx+16:.1f},3.5" '
-                f'stroke="#ff5555" stroke-width="1.4" stroke-linecap="round"/>'
+                f'<path d="M {tongue_base_x:.1f},0 L {tongue_base_x+4:.1f},0" stroke="#ff5555" '
+                f'stroke-width="0.9" stroke-linecap="round"/>'
             )
+            svg.append(
+                f'<path d="M {tongue_base_x+3:.1f},0 L {tongue_base_x+4.5:.1f},-0.9 '
+                f'M {tongue_base_x+3:.1f},0 L {tongue_base_x+4.5:.1f},0.9" '
+                f'stroke="#ff5555" stroke-width="0.8" stroke-linecap="round"/>'
+            )
+            svg.append("</g>")
         svg.append("</g>")
 
     svg.append(f'<path id="loopPath" d="{path_d}" fill="none" stroke="none"/>')
