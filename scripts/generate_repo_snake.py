@@ -81,7 +81,7 @@ def generate(out_path, seed=None):
     for i in range(N_SEGMENTS - 1, -1, -1):
         t = i / (N_SEGMENTS - 1)  # 0 = head, 1 = tail
         r = HEAD_R + (TAIL_R - HEAD_R) * (t ** 1.4)
-        delay = i * SEG_GAP_T
+        delay = (N_SEGMENTS - 1 - i) * SEG_GAP_T
         color = lerp_color(ACCENT, ACCENT_DIM, t)
         is_head = i == 0
 
