@@ -9,10 +9,10 @@ CARD_W = 150
 CARD_H = 80
 GAP = 14
 PAD = 24
-PER_CELL = 0.55
-SEG_SIZE = 12
-SEG_COUNT = 5
-SEG_GAP_T = 0.09
+PER_CELL = 0.9
+SEG_SIZE = 16
+SEG_COUNT = 6
+SEG_GAP_T = 0.07
 FONT = "'Courier New', monospace"
 
 BG = "#0d1117"
