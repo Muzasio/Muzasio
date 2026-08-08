@@ -7,6 +7,7 @@ ACCENT = "#39ff14"
 ACCENT_DIM = "#155c0a"
 ACCENT_MID = "#2bcf10"
 EYE = "#0d1117"
+SHADOW = "#000000"
 
 N_SEGMENTS = 26
 HEAD_R = 20
@@ -14,17 +15,50 @@ TAIL_R = 3.5
 SEG_GAP_T = 0.028
 LOOP_DUR = 8.0
 
+UNDULATE_PERIOD = 0.9
+UNDULATE_AMP = 3.2
+UNDULATE_PHASE_STEP = 0.045
 
-def random_closed_path(cx, cy, base_r, n_points=11, jitter=0.35, seed=None):
-    rnd = random.Random(seed)
+BLINK_PERIOD = 3.4
+
+
+def shape_wide_roam(cx, cy, rnd):
+    n = 11
     pts = []
-    for i in range(n_points):
-        angle = (2 * math.pi * i / n_points) + rnd.uniform(-0.15, 0.15)
-        r = base_r * (1 + rnd.uniform(-jitter, jitter))
+    for i in range(n):
+        angle = (2 * math.pi * i / n) + rnd.uniform(-0.15, 0.15)
+        r = 170 * (1 + rnd.uniform(-0.4, 0.4))
         x = cx + r * math.cos(angle) * 1.35
         y = cy + r * math.sin(angle)
         pts.append((x, y))
     return pts
+
+
+def shape_tight_coil(cx, cy, rnd):
+    n = 13
+    pts = []
+    for i in range(n):
+        angle = (2 * math.pi * i / n) + rnd.uniform(-0.2, 0.2)
+        r = 95 * (1 + rnd.uniform(-0.3, 0.3))
+        x = cx + r * math.cos(angle)
+        y = cy + r * math.sin(angle) * 0.85
+        pts.append((x, y))
+    return pts
+
+
+def shape_elongated(cx, cy, rnd):
+    n = 9
+    pts = []
+    for i in range(n):
+        angle = (2 * math.pi * i / n) + rnd.uniform(-0.12, 0.12)
+        r = 150 * (1 + rnd.uniform(-0.35, 0.35))
+        x = cx + r * math.cos(angle) * 1.8
+        y = cy + r * math.sin(angle) * 0.6
+        pts.append((x, y))
+    return pts
+
+
+SHAPES = [shape_wide_roam, shape_tight_coil, shape_elongated]
 
 
 def closed_catmull_rom_bezier(points):
@@ -56,7 +90,9 @@ def lerp_color(c1, c2, t):
 
 
 def generate(out_path, seed=None):
-    pts = random_closed_path(W / 2, H / 2 + 10, base_r=170, n_points=11, jitter=0.4, seed=seed)
+    rnd = random.Random(seed)
+    shape_fn = rnd.choice(SHAPES)
+    pts = shape_fn(W / 2, H / 2 + 10, rnd)
     path_d = closed_catmull_rom_bezier(pts)
 
     svg = []
@@ -68,20 +104,44 @@ def generate(out_path, seed=None):
         '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>'
         "</filter>"
     )
+    svg.append(
+        '<filter id="shadowBlur" x="-80%" y="-80%" width="260%" height="260%">'
+        '<feGaussianBlur stdDeviation="3.5"/>'
+        "</filter>"
+    )
     svg.append("</defs>")
     svg.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}" rx="12"/>')
 
-    # faint dotted grid backdrop for texture
     for gy in range(0, H, 22):
         for gx in range(0, W, 22):
             svg.append(f'<circle cx="{gx}" cy="{gy}" r="1" fill="#1c2530"/>')
 
-    # body segments: tail -> head so head renders on top, each riding the
-    # same closed path via animateMotion, staggered by begin= so they trail
+    # ground shadow: same segments, position-only (no rotate, no undulation),
+    # offset straight down in screen space so it reads as a fixed light source
+    for i in range(N_SEGMENTS - 1, -1, -1):
+        t = i / (N_SEGMENTS - 1)
+        r = HEAD_R + (TAIL_R - HEAD_R) * (t ** 1.4)
+        delay = (N_SEGMENTS - 1 - i) * SEG_GAP_T
+        svg.append('<g filter="url(#shadowBlur)">')
+        svg.append(
+            f'<animateMotion dur="{LOOP_DUR:.3f}s" repeatCount="indefinite" '
+            f'begin="-{delay:.3f}s" calcMode="linear">'
+            f'<mpath href="#loopPath"/></animateMotion>'
+        )
+        svg.append(
+            f'<ellipse cx="0" cy="{r*0.7:.1f}" rx="{r*0.9:.1f}" ry="{r*0.42:.1f}" '
+            f'fill="{SHADOW}" opacity="0.5"/>'
+        )
+        svg.append("</g>")
+
+    # body segments: tail -> head so head renders on top. Outer <g> rides the
+    # path (position + heading via rotate=auto). Inner <g> adds a phase-shifted
+    # perpendicular oscillation on top of that for a traveling-wave undulation.
     for i in range(N_SEGMENTS - 1, -1, -1):
         t = i / (N_SEGMENTS - 1)  # 0 = head, 1 = tail
         r = HEAD_R + (TAIL_R - HEAD_R) * (t ** 1.4)
         delay = (N_SEGMENTS - 1 - i) * SEG_GAP_T
+        undulate_delay = (N_SEGMENTS - 1 - i) * UNDULATE_PHASE_STEP
         color = lerp_color(ACCENT, ACCENT_DIM, t)
         is_head = i == 0
 
@@ -91,15 +151,40 @@ def generate(out_path, seed=None):
             f'begin="-{delay:.3f}s" rotate="auto" calcMode="linear">'
             f'<mpath href="#loopPath"/></animateMotion>'
         )
+        svg.append("<g>")
+        svg.append(
+            '<animateTransform attributeName="transform" type="translate" '
+            f'dur="{UNDULATE_PERIOD:.3f}s" repeatCount="indefinite" '
+            f'begin="-{undulate_delay:.3f}s" calcMode="spline" '
+            'keyTimes="0;0.25;0.5;0.75;1" '
+            f'values="0,0;0,{UNDULATE_AMP:.1f};0,0;0,{-UNDULATE_AMP:.1f};0,0" '
+            'keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"/>'
+        )
         rx = r
         ry = r * 0.72
         svg.append(f'<ellipse rx="{rx:.1f}" ry="{ry:.1f}" fill="{color}"' + (' filter="url(#glow)"' if is_head else "") + "/>")
         if not is_head:
-            # subtle belly highlight seam
             svg.append(f'<ellipse rx="{rx*0.5:.1f}" ry="{ry*0.35:.1f}" fill="{ACCENT_MID}" opacity="0.25"/>')
         if is_head:
+            blink_delay = rnd.uniform(0, BLINK_PERIOD)
+            svg.append(f'<g transform-origin="{rx*0.4:.1f}px {-ry*0.42:.1f}px">')
+            svg.append(
+                '<animateTransform attributeName="transform" type="scale" '
+                f'dur="{BLINK_PERIOD:.3f}s" repeatCount="indefinite" '
+                f'begin="-{blink_delay:.3f}s" calcMode="discrete" '
+                'keyTimes="0;0.92;0.95;0.98;1" values="1,1;1,1;1,0.1;1,1;1,1"/>'
+            )
             svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{-ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
+            svg.append("</g>")
+            svg.append(f'<g transform-origin="{rx*0.4:.1f}px {ry*0.42:.1f}px">')
+            svg.append(
+                '<animateTransform attributeName="transform" type="scale" '
+                f'dur="{BLINK_PERIOD:.3f}s" repeatCount="indefinite" '
+                f'begin="-{blink_delay:.3f}s" calcMode="discrete" '
+                'keyTimes="0;0.92;0.95;0.98;1" values="1,1;1,1;1,0.1;1,1;1,1"/>'
+            )
             svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
+            svg.append("</g>")
             tongue_base_x = rx - 2
             svg.append(f'<g transform-origin="{tongue_base_x:.1f}px 0px">')
             svg.append(
@@ -118,6 +203,7 @@ def generate(out_path, seed=None):
                 f'stroke="#ff5555" stroke-width="0.8" stroke-linecap="round"/>'
             )
             svg.append("</g>")
+        svg.append("</g>")
         svg.append("</g>")
 
     svg.append(f'<path id="loopPath" d="{path_d}" fill="none" stroke="none"/>')
