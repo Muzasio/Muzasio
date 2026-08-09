@@ -129,6 +129,8 @@ def nearest_neighbor_tour(points, rnd):
 
 
 def closed_catmull_rom_bezier(points):
+    """Kept only for standalone-snake compatibility; the card-eating path
+    below uses closed_catmull_rom_segments + arc_length_key_points instead."""
     n = len(points)
     d = f"M {points[0][0]:.2f},{points[0][1]:.2f} "
     for i in range(n):
@@ -145,16 +147,52 @@ def closed_catmull_rom_bezier(points):
     return d
 
 
-def cumulative_key_points(points):
+def closed_catmull_rom_segments(points):
     n = len(points)
-    dists = [0.0]
-    for i in range(1, n + 1):
-        (x0, y0), (x1, y1) = points[i - 1], points[i % n]
-        dists.append(dists[-1] + math.hypot(x1 - x0, y1 - y0))
-    total = dists[-1] if dists[-1] > 0 else 1.0
-    key_points = [d / total for d in dists]
-    key_times = [i / n for i in range(n + 1)]
-    return key_points, key_times
+    segments = []
+    for i in range(n):
+        p0 = points[(i - 1) % n]
+        p1 = points[i]
+        p2 = points[(i + 1) % n]
+        p3 = points[(i + 2) % n]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        segments.append((p1, c1, c2, p2))
+    return segments
+
+
+def path_d_from_segments(segments):
+    d = f"M {segments[0][0][0]:.2f},{segments[0][0][1]:.2f} "
+    for p1, c1, c2, p2 in segments:
+        d += f"C {c1[0]:.2f},{c1[1]:.2f} {c2[0]:.2f},{c2[1]:.2f} {p2[0]:.2f},{p2[1]:.2f} "
+    d += "Z"
+    return d
+
+
+def sample_cubic(p1, c1, c2, p2, steps=28):
+    pts = []
+    for s in range(steps + 1):
+        t = s / steps
+        mt = 1 - t
+        x = mt**3 * p1[0] + 3 * mt**2 * t * c1[0] + 3 * mt * t**2 * c2[0] + t**3 * p2[0]
+        y = mt**3 * p1[1] + 3 * mt**2 * t * c1[1] + 3 * mt * t**2 * c2[1] + t**3 * p2[1]
+        pts.append((x, y))
+    return pts
+
+
+def arc_length_key_points(segments):
+    """True key points along the actual rendered bezier curve (not the
+    straight-line chord distance between waypoints), so the head's arrival
+    time at each card matches exactly where it visually is on the curve."""
+    cum = [0.0]
+    for seg in segments:
+        pts = sample_cubic(*seg)
+        length = 0.0
+        for a, b in zip(pts, pts[1:]):
+            length += math.hypot(b[0] - a[0], b[1] - a[1])
+        cum.append(cum[-1] + length)
+    total = cum[-1] if cum[-1] > 0 else 1.0
+    return [c / total for c in cum]
 
 
 def lerp_color(c1, c2, t):
@@ -181,8 +219,10 @@ def generate(out_path, repos, seed=None):
     ordered_pts = [pts[i] for i in order]
     ordered_repos = [repos[i] for i in order]
 
-    path_d = closed_catmull_rom_bezier(ordered_pts)
-    key_points, key_times = cumulative_key_points(ordered_pts)
+    segments = closed_catmull_rom_segments(ordered_pts)
+    path_d = path_d_from_segments(segments)
+    key_points = arc_length_key_points(segments)
+    key_times = [i / n for i in range(n + 1)]
     kp_str = ";".join(f"{k:.5f}" for k in key_points)
     kt_str = ";".join(f"{k:.5f}" for k in key_times)
     total_dur = n * PER_CARD_T
@@ -220,16 +260,22 @@ def generate(out_path, repos, seed=None):
         cx, cy = ordered_pts[i]
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
         eat_t = i * PER_CARD_T
-        vanish_end = min(eat_t + 0.18, total_dur)
+        pop_t = min(eat_t + 0.05, total_dur)
+        vanish_end = min(eat_t + 0.13, total_dur)
         rf_eat = eat_t / total_dur
+        rf_pop = pop_t / total_dur
         rf_vanish = vanish_end / total_dur
 
         body.append(f'<g transform="translate({cx:.1f},{cy:.1f})">')
+
+        # card: idle -> quick pop -> shrink to nothing, timed tight to the
+        # head's actual arrival so it reacts the instant contact happens
+        body.append(f'<g>')
         body.append(
             '<animateTransform attributeName="transform" type="scale" additive="sum" '
             f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="spline" '
-            f'keyTimes="0;{rf_eat:.5f};{rf_vanish:.5f};1" values="1;1;0.15;0.15" '
-            'keySplines="0.4 0 0.2 1;0.4 0 0.6 1;0 0 1 1"/>'
+            f'keyTimes="0;{rf_eat:.5f};{rf_pop:.5f};{rf_vanish:.5f};1" values="1;1;1.22;0.05;0.05" '
+            'keySplines="0.4 0 0.2 1;0.3 0 0.4 1;0.2 0 0.8 1;0 0 1 1"/>'
         )
         body.append(
             '<animate attributeName="opacity" '
@@ -256,6 +302,42 @@ def generate(out_path, repos, seed=None):
             f'<text x="{tx:.1f}" y="{ty+38:.1f}" font-family="{FONT}" font-size="9.5" '
             f'fill="{c2}">&#9733; {r["stars"]}</text>'
         )
+        body.append("</g>")
+
+        # particle burst: fires the instant the head arrives, flies outward
+        # from the card center and fades, independent of the card's own pop
+        n_particles = 7
+        burst_start = rf_eat
+        burst_end = min(eat_t + 0.34, total_dur) / total_dur
+        for p in range(n_particles):
+            angle = rnd.uniform(0, 2 * math.pi)
+            dist = rnd.uniform(34, 68)
+            dx, dy = math.cos(angle) * dist, math.sin(angle) * dist
+            psize = rnd.uniform(2.2, 4.5)
+            pcolor = c2 if p % 2 == 0 else c1
+            body.append("<g>")
+            body.append(
+                '<animateTransform attributeName="transform" type="translate" '
+                f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+                f'keyTimes="0;{burst_start:.5f};{burst_end:.5f};1" '
+                f'values="0,0;0,0;{dx:.1f},{dy:.1f};{dx:.1f},{dy:.1f}"/>'
+            )
+            body.append("<g>")
+            body.append(
+                '<animateTransform attributeName="transform" type="scale" '
+                f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+                f'keyTimes="0;{burst_start:.5f};{burst_end:.5f};1" values="1;1;0.15;0.15"/>'
+            )
+            body.append(
+                f'<circle r="{psize:.1f}" fill="{pcolor}">'
+                '<animate attributeName="opacity" '
+                f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+                f'keyTimes="0;{burst_start:.5f};{burst_end:.5f};1" values="0;1;0;0"/>'
+                "</circle>"
+            )
+            body.append("</g>")
+            body.append("</g>")
+
         body.append("</g>")
 
     # ---- snake: same path, growing in scale across the lap as it eats
