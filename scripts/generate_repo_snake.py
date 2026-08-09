@@ -222,10 +222,20 @@ def generate(out_path, repos, seed=None):
     segments = closed_catmull_rom_segments(ordered_pts)
     path_d = path_d_from_segments(segments)
     key_points = arc_length_key_points(segments)
-    key_times = [i / n for i in range(n + 1)]
+
+    # randomized per-card time gaps instead of a uniform i/n split -- a fixed
+    # interval between every eat is what reads as a robotic metronome, so
+    # each gap is drawn independently and the cumulative times define both
+    # key_times (when the head visits each vertex) and total_dur
+    gaps = [rnd.uniform(0.45, 1.55) for _ in range(n)]
+    cumulative = [0.0]
+    for g in gaps:
+        cumulative.append(cumulative[-1] + g)
+    total_dur = cumulative[-1]
+    key_times = [c / total_dur for c in cumulative]
+
     kp_str = ";".join(f"{k:.5f}" for k in key_points)
     kt_str = ";".join(f"{k:.5f}" for k in key_times)
-    total_dur = n * PER_CARD_T
     # the head (body segment i=0) is given the LARGEST begin-delay so it
     # leads the pack (see render_snake). That means, for a fixed vertex, the
     # head physically arrives HEAD_DELAY seconds before the reference
@@ -266,7 +276,7 @@ def generate(out_path, repos, seed=None):
         )
         cx, cy = ordered_pts[i]
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
-        eat_t = (i * PER_CARD_T - HEAD_DELAY) % total_dur
+        eat_t = (cumulative[i] - HEAD_DELAY) % total_dur
         pop_t = min(eat_t + 0.05, total_dur)
         vanish_end = min(eat_t + 0.13, total_dur)
         rf_eat = eat_t / total_dur
