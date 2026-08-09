@@ -226,6 +226,13 @@ def generate(out_path, repos, seed=None):
     kp_str = ";".join(f"{k:.5f}" for k in key_points)
     kt_str = ";".join(f"{k:.5f}" for k in key_times)
     total_dur = n * PER_CARD_T
+    # the head (body segment i=0) is given the LARGEST begin-delay so it
+    # leads the pack (see render_snake). That means, for a fixed vertex, the
+    # head physically arrives HEAD_DELAY seconds before the reference
+    # (zero-delay) timing that key_points/key_times were built against.
+    # Card eat-timing must be shifted by that same amount or the trigger
+    # fires when the zero-delay tail segment arrives instead of the head.
+    HEAD_DELAY = (N_SEGMENTS - 1) * SEG_GAP_T
 
     defs = []
     body = []
@@ -239,13 +246,13 @@ def generate(out_path, repos, seed=None):
     # instant the snake head's timing (idx * PER_CARD_T) reaches it, and
     # reappears when the loop restarts.
     defs.append(
-        '<filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">'
-        '<feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>'
+        '<filter id="cardShadow" x="-30%" y="-30%" width="160%" height="160%">'
+        '<feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.35"/>'
         "</filter>"
     )
     defs.append(
-        '<filter id="glowBlur" x="-100%" y="-100%" width="300%" height="300%">'
-        '<feGaussianBlur stdDeviation="14"/>'
+        '<filter id="glowBlur" x="-60%" y="-60%" width="220%" height="220%">'
+        '<feGaussianBlur stdDeviation="7"/>'
         "</filter>"
     )
     for i, r in enumerate(ordered_repos):
@@ -259,7 +266,7 @@ def generate(out_path, repos, seed=None):
         )
         cx, cy = ordered_pts[i]
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
-        eat_t = i * PER_CARD_T
+        eat_t = (i * PER_CARD_T - HEAD_DELAY) % total_dur
         pop_t = min(eat_t + 0.05, total_dur)
         vanish_end = min(eat_t + 0.13, total_dur)
         rf_eat = eat_t / total_dur
@@ -282,7 +289,7 @@ def generate(out_path, repos, seed=None):
             f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="discrete" '
             f'keyTimes="0;{rf_eat:.5f};{rf_vanish:.5f};1" values="1;1;0;0"/>'
         )
-        body.append(f'<circle cx="{card_size*0.3:.1f}" cy="{-card_size*0.3:.1f}" r="{card_size*0.42:.1f}" fill="{c2}" opacity="0.30" filter="url(#glowBlur)"/>')
+        body.append(f'<circle cx="{card_size*0.3:.1f}" cy="{-card_size*0.3:.1f}" r="{card_size*0.26:.1f}" fill="{c2}" opacity="0.22" filter="url(#glowBlur)"/>')
         body.append('<g filter="url(#cardShadow)">')
         body.append(f'<path d="{square_path(card_size, 20)}" fill="#161b22"/>')
         body.append(f'<path d="{square_path(card_size, 20)}" fill="none" stroke="url(#grad{i})" stroke-width="1.8"/>')
@@ -309,6 +316,14 @@ def generate(out_path, repos, seed=None):
         n_particles = 7
         burst_start = rf_eat
         burst_end = min(eat_t + 0.34, total_dur) / total_dur
+        # opacity must stay flat at 0 for the whole idle period and only pop
+        # to 1 right at burst_start -- a duplicate near-zero pre-keyframe
+        # pins that, otherwise linear calcMode ramps 0->1 across the ENTIRE
+        # idle interval and the particle sits visible at the card center
+        # the whole time (that's the stray "dot" bug)
+        pre_burst_t = max(0.0, eat_t - 0.02)
+        rf_pre = pre_burst_t / total_dur
+        use_pre_frame = rf_pre < rf_eat
         for p in range(n_particles):
             angle = rnd.uniform(0, 2 * math.pi)
             dist = rnd.uniform(34, 68)
@@ -332,8 +347,12 @@ def generate(out_path, repos, seed=None):
                 f'<circle r="{psize:.1f}" fill="{pcolor}">'
                 '<animate attributeName="opacity" '
                 f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
-                f'keyTimes="0;{burst_start:.5f};{burst_end:.5f};1" values="0;1;0;0"/>'
-                "</circle>"
+                + (
+                    f'keyTimes="0;{rf_pre:.5f};{burst_start:.5f};{burst_end:.5f};1" values="0;0;1;0;0"/>'
+                    if use_pre_frame else
+                    f'keyTimes="0;{burst_start:.5f};{burst_end:.5f};1" values="1;1;0;0"/>'
+                )
+                + "</circle>"
             )
             body.append("</g>")
             body.append("</g>")
