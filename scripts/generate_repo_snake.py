@@ -40,6 +40,7 @@ SAMPLE_REPOS = [
 ]
 
 PER_CARD_T = 0.85
+SNAKE_SPEED_PX_S = 260
 
 ACCENT = "#39ff14"
 ACCENT_DIM = "#155c0a"
@@ -115,14 +116,21 @@ def poisson_scatter(n, w, h, min_dist, margin, rnd):
     return pts
 
 
-def nearest_neighbor_tour(points, rnd):
+def nearest_neighbor_tour(points, rnd, k=3):
+    """Randomized-nearest-neighbor: picks among the k closest remaining
+    cards rather than always the single closest. A strict nearest-neighbor
+    tour looks like a solved TSP path -- too orderly. Sampling among the
+    few nearest keeps the route physically plausible (no wild cross-canvas
+    jumps) while the visiting order genuinely varies each generation."""
     remaining = list(range(len(points)))
     start = rnd.choice(remaining)
     order = [start]
     remaining.remove(start)
     while remaining:
         last = points[order[-1]]
-        nxt = min(remaining, key=lambda i: math.hypot(points[i][0] - last[0], points[i][1] - last[1]))
+        remaining.sort(key=lambda i: math.hypot(points[i][0] - last[0], points[i][1] - last[1]))
+        candidates = remaining[: min(k, len(remaining))]
+        nxt = rnd.choice(candidates)
         order.append(nxt)
         remaining.remove(nxt)
     return order
@@ -183,7 +191,8 @@ def sample_cubic(p1, c1, c2, p2, steps=28):
 def arc_length_key_points(segments):
     """True key points along the actual rendered bezier curve (not the
     straight-line chord distance between waypoints), so the head's arrival
-    time at each card matches exactly where it visually is on the curve."""
+    time at each card matches exactly where it visually is on the curve.
+    Returns (key_points fractions, total path length in px)."""
     cum = [0.0]
     for seg in segments:
         pts = sample_cubic(*seg)
@@ -192,7 +201,7 @@ def arc_length_key_points(segments):
             length += math.hypot(b[0] - a[0], b[1] - a[1])
         cum.append(cum[-1] + length)
     total = cum[-1] if cum[-1] > 0 else 1.0
-    return [c / total for c in cum]
+    return [c / total for c in cum], total
 
 
 def lerp_color(c1, c2, t):
@@ -221,18 +230,16 @@ def generate(out_path, repos, seed=None):
 
     segments = closed_catmull_rom_segments(ordered_pts)
     path_d = path_d_from_segments(segments)
-    key_points = arc_length_key_points(segments)
+    key_points, path_length = arc_length_key_points(segments)
 
-    # randomized per-card time gaps instead of a uniform i/n split -- a fixed
-    # interval between every eat is what reads as a robotic metronome, so
-    # each gap is drawn independently and the cumulative times define both
-    # key_times (when the head visits each vertex) and total_dur
-    gaps = [rnd.uniform(0.45, 1.55) for _ in range(n)]
-    cumulative = [0.0]
-    for g in gaps:
-        cumulative.append(cumulative[-1] + g)
-    total_dur = cumulative[-1]
-    key_times = [c / total_dur for c in cumulative]
+    # constant speed: time-fraction must equal distance-fraction at every
+    # point, so key_times has to be identical to key_points -- any other
+    # mapping forces the head to cover different arc lengths in mismatched
+    # time windows, which is what produced the speed-up/slow-down jitter.
+    # total_dur is derived from a fixed px/sec target so the snake's actual
+    # speed stays constant across different layouts, not just within one.
+    key_times = key_points
+    total_dur = path_length / SNAKE_SPEED_PX_S
 
     kp_str = ";".join(f"{k:.5f}" for k in key_points)
     kt_str = ";".join(f"{k:.5f}" for k in key_times)
@@ -276,7 +283,7 @@ def generate(out_path, repos, seed=None):
         )
         cx, cy = ordered_pts[i]
         lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
-        eat_t = (cumulative[i] - HEAD_DELAY) % total_dur
+        eat_t = (key_times[i] * total_dur - HEAD_DELAY) % total_dur
         pop_t = min(eat_t + 0.05, total_dur)
         vanish_end = min(eat_t + 0.13, total_dur)
         rf_eat = eat_t / total_dur
@@ -382,13 +389,6 @@ def generate(out_path, repos, seed=None):
         "</filter>"
     )
 
-    body.append('<g transform-origin="{}px {}px">'.format(W / 2, H / 2))
-    body.append(
-        '<animateTransform attributeName="transform" type="scale" additive="sum" '
-        f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
-        f'values="{GROWTH_START_SCALE};{GROWTH_END_SCALE}"/>'
-    )
-
     for i in range(N_SEGMENTS - 1, -1, -1):
         t = i / (N_SEGMENTS - 1)
         r = HEAD_R + (TAIL_R - HEAD_R) * (t ** 1.4)
@@ -399,10 +399,20 @@ def generate(out_path, repos, seed=None):
             f'begin="-{delay:.3f}s" calcMode="linear" keyPoints="{kp_str}" keyTimes="{kt_str}">'
             f'<mpath href="#loopPath"/></animateMotion>'
         )
+        # growth applied locally (anchored at this segment's own current
+        # position, not canvas center) so getting fatter never nudges the
+        # travel speed or position -- purely a size change in place
+        body.append("<g>")
+        body.append(
+            '<animateTransform attributeName="transform" type="scale" '
+            f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+            f'values="{GROWTH_START_SCALE};{GROWTH_END_SCALE}"/>'
+        )
         body.append(
             f'<ellipse cx="0" cy="{r*0.7:.1f}" rx="{r*0.9:.1f}" ry="{r*0.42:.1f}" '
             f'fill="{SHADOW}" opacity="0.5"/>'
         )
+        body.append("</g>")
         body.append("</g>")
 
     for i in range(N_SEGMENTS - 1, -1, -1):
@@ -427,6 +437,12 @@ def generate(out_path, repos, seed=None):
             'keyTimes="0;0.25;0.5;0.75;1" '
             f'values="0,0;0,{UNDULATE_AMP:.1f};0,0;0,{-UNDULATE_AMP:.1f};0,0" '
             'keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"/>'
+        )
+        body.append("<g>")
+        body.append(
+            '<animateTransform attributeName="transform" type="scale" '
+            f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+            f'values="{GROWTH_START_SCALE};{GROWTH_END_SCALE}"/>'
         )
         rx = r
         ry = r * 0.72
@@ -473,8 +489,8 @@ def generate(out_path, repos, seed=None):
             body.append("</g>")
         body.append("</g>")
         body.append("</g>")
+        body.append("</g>")
 
-    body.append("</g>")  # close growth wrapper
     body.append(f'<path id="loopPath" d="{path_d}" fill="none" stroke="none"/>')
 
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
