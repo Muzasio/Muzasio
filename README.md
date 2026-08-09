@@ -62,12 +62,12 @@
 </p>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake-dark.svg?ts=31298431157" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31298431157" />
-  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31298431157" width="100%" height="auto" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake-dark.svg?ts=31298746753" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31298746753" />
+  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31298746753" width="100%" height="auto" />
 </picture>
 
 
 <p align="center">
-  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31298431157" />
+  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31298746753" />
 </p>
