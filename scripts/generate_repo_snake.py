@@ -5,12 +5,10 @@ import random
 import sys
 import urllib.request
 
-# ---------- shared canvas ----------
 W, H = 1000, 600
 BG = "#0d1117"
 FONT = "'Courier New', monospace"
 
-# ---------- card palette / text ----------
 TEXT_PRIMARY = "#e6edf3"
 TEXT_DIM = "#8b949e"
 
@@ -41,7 +39,8 @@ SAMPLE_REPOS = [
     {"name": "video-batch-conv", "language": "Shell", "stars": 0},
 ]
 
-# ---------- snake tuning ----------
+PER_CARD_T = 0.85
+
 ACCENT = "#39ff14"
 ACCENT_DIM = "#155c0a"
 ACCENT_MID = "#2bcf10"
@@ -49,16 +48,17 @@ EYE = "#0d1117"
 SHADOW = "#000000"
 
 N_SEGMENTS = 26
-HEAD_R = 22
-TAIL_R = 3.8
+HEAD_R = 20
+TAIL_R = 3.5
 SEG_GAP_T = 0.028
-LOOP_DUR = 9.0
 
 UNDULATE_PERIOD = 0.9
-UNDULATE_AMP = 3.4
+UNDULATE_AMP = 3.2
 UNDULATE_PHASE_STEP = 0.045
-
 BLINK_PERIOD = 3.4
+
+GROWTH_START_SCALE = 0.72
+GROWTH_END_SCALE = 1.45
 
 
 def fetch_repos(user, token=None, limit=24):
@@ -85,11 +85,10 @@ def truncate(s, n):
     return s if len(s) <= n else s[: n - 1].rstrip() + "\u2026"
 
 
-# ---------- card shape/layout ----------
-
-def squircle_path(w, h, r):
-    x0, y0 = -w / 2, -h / 2
-    x1, y1 = w / 2, h / 2
+def square_path(size, r):
+    """Squircle-cornered square (iOS-icon style), centered at local origin."""
+    x0 = y0 = -size / 2
+    x1 = y1 = size / 2
     k = 0.62
     return (
         f"M {x0+r:.2f},{y0:.2f} "
@@ -107,7 +106,7 @@ def squircle_path(w, h, r):
 def poisson_scatter(n, w, h, min_dist, margin, rnd):
     pts = []
     attempts = 0
-    while len(pts) < n and attempts < 6000:
+    while len(pts) < n and attempts < 8000:
         attempts += 1
         x = rnd.uniform(margin, w - margin)
         y = rnd.uniform(margin, h - margin)
@@ -116,123 +115,17 @@ def poisson_scatter(n, w, h, min_dist, margin, rnd):
     return pts
 
 
-def render_cards(svg, defs, repos, rnd):
-    n = len(repos)
-    pts = poisson_scatter(n, W, H, min_dist=108, margin=100, rnd=rnd)
-    while len(pts) < n:
-        pts.append((rnd.uniform(100, W - 100), rnd.uniform(100, H - 100)))
-
-    defs.append(
-        '<filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">'
-        '<feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>'
-        "</filter>"
-    )
-    defs.append(
-        '<filter id="glowBlur" x="-100%" y="-100%" width="300%" height="300%">'
-        '<feGaussianBlur stdDeviation="14"/>'
-        "</filter>"
-    )
-    card_gradients = []
-    for i in range(n):
-        c1, c2 = rnd.choice(GRADIENT_PAIRS)
-        card_gradients.append((c1, c2))
-        angle = rnd.uniform(0, 360)
-        defs.append(
-            f'<linearGradient id="grad{i}" gradientTransform="rotate({angle:.0f})">'
-            f'<stop offset="0%" stop-color="{c1}"/>'
-            f'<stop offset="100%" stop-color="{c2}"/>'
-            "</linearGradient>"
-        )
-
-    card_w, card_h = 148, 88
-    layout = []
-    for i, r in enumerate(repos):
-        cx, cy = pts[i]
-        rot = rnd.uniform(-8, 8)
-        scale = rnd.uniform(0.85, 1.22)
-        corner = rnd.choice(["tl", "tr", "bl", "br"])
-        layout.append((i, r, cx, cy, rot, scale, corner))
-    layout.sort(key=lambda item: item[5])
-
-    for i, r, cx, cy, rot, scale, corner in layout:
-        w = card_w * scale
-        h = card_h * scale
-        corner_r = 22 * scale
-        lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
-        c1, c2 = card_gradients[i]
-
-        cox = {"tl": -w / 2, "tr": w / 2, "bl": -w / 2, "br": w / 2}[corner]
-        coy = {"tl": -h / 2, "tr": -h / 2, "bl": h / 2, "br": h / 2}[corner]
-
-        svg.append(f'<g transform="translate({cx:.1f},{cy:.1f}) rotate({rot:.1f})">')
-        svg.append(f'<circle cx="{cox:.1f}" cy="{coy:.1f}" r="{w*0.42:.1f}" fill="{c2}" opacity="0.30" filter="url(#glowBlur)"/>')
-        svg.append('<g filter="url(#cardShadow)">')
-        svg.append(f'<path d="{squircle_path(w, h, corner_r)}" fill="#161b22"/>')
-        svg.append(f'<path d="{squircle_path(w, h, corner_r)}" fill="none" stroke="url(#grad{i})" stroke-width="1.8"/>')
-        svg.append("</g>")
-        svg.append(
-            f'<path d="M {-w/2+corner_r*0.3:.1f},{-h/2+corner_r*1.1:.1f} '
-            f'Q {-w/2:.1f},{-h/2:.1f} {-w/2+corner_r*1.1:.1f},{-h/2:.1f} '
-            f'L {w/2-corner_r*1.1:.1f},{-h/2:.1f}" '
-            f'fill="none" stroke="#ffffff" stroke-width="1" opacity="0.10" stroke-linecap="round"/>'
-        )
-
-        tx, ty = -w / 2 + 14, -h / 2 + 24
-        svg.append(
-            f'<text x="{tx:.1f}" y="{ty:.1f}" font-family="{FONT}" font-size="{12*scale:.1f}" '
-            f'font-weight="bold" fill="{TEXT_PRIMARY}">{esc(truncate(r["name"], 16))}</text>'
-        )
-        svg.append(f'<circle cx="{tx+6:.1f}" cy="{ty+20*scale:.1f}" r="{3.5*scale:.1f}" fill="{lang_color}"/>')
-        svg.append(
-            f'<text x="{tx+15:.1f}" y="{ty+24*scale:.1f}" font-family="{FONT}" font-size="{10*scale:.1f}" '
-            f'fill="{TEXT_DIM}">{esc(truncate(r["language"], 14))}</text>'
-        )
-        svg.append(
-            f'<text x="{tx:.1f}" y="{ty+42*scale:.1f}" font-family="{FONT}" font-size="{10*scale:.1f}" '
-            f'fill="{c2}">&#9733; {r["stars"]}</text>'
-        )
-        svg.append("</g>")
-
-
-# ---------- snake shape/path/motion ----------
-
-def shape_wide_roam(cx, cy, rnd):
-    n = 11
-    pts = []
-    for i in range(n):
-        angle = (2 * math.pi * i / n) + rnd.uniform(-0.15, 0.15)
-        r = 230 * (1 + rnd.uniform(-0.4, 0.4))
-        x = cx + r * math.cos(angle) * 1.35
-        y = cy + r * math.sin(angle)
-        pts.append((x, y))
-    return pts
-
-
-def shape_tight_coil(cx, cy, rnd):
-    n = 13
-    pts = []
-    for i in range(n):
-        angle = (2 * math.pi * i / n) + rnd.uniform(-0.2, 0.2)
-        r = 130 * (1 + rnd.uniform(-0.3, 0.3))
-        x = cx + r * math.cos(angle)
-        y = cy + r * math.sin(angle) * 0.85
-        pts.append((x, y))
-    return pts
-
-
-def shape_elongated(cx, cy, rnd):
-    n = 9
-    pts = []
-    for i in range(n):
-        angle = (2 * math.pi * i / n) + rnd.uniform(-0.12, 0.12)
-        r = 200 * (1 + rnd.uniform(-0.35, 0.35))
-        x = cx + r * math.cos(angle) * 1.8
-        y = cy + r * math.sin(angle) * 0.6
-        pts.append((x, y))
-    return pts
-
-
-SHAPES = [shape_wide_roam, shape_tight_coil, shape_elongated]
+def nearest_neighbor_tour(points, rnd):
+    remaining = list(range(len(points)))
+    start = rnd.choice(remaining)
+    order = [start]
+    remaining.remove(start)
+    while remaining:
+        last = points[order[-1]]
+        nxt = min(remaining, key=lambda i: math.hypot(points[i][0] - last[0], points[i][1] - last[1]))
+        order.append(nxt)
+        remaining.remove(nxt)
+    return order
 
 
 def closed_catmull_rom_bezier(points):
@@ -252,6 +145,18 @@ def closed_catmull_rom_bezier(points):
     return d
 
 
+def cumulative_key_points(points):
+    n = len(points)
+    dists = [0.0]
+    for i in range(1, n + 1):
+        (x0, y0), (x1, y1) = points[i - 1], points[i % n]
+        dists.append(dists[-1] + math.hypot(x1 - x0, y1 - y0))
+    total = dists[-1] if dists[-1] > 0 else 1.0
+    key_points = [d / total for d in dists]
+    key_times = [i / n for i in range(n + 1)]
+    return key_points, key_times
+
+
 def lerp_color(c1, c2, t):
     c1 = c1.lstrip("#")
     c2 = c2.lstrip("#")
@@ -263,11 +168,97 @@ def lerp_color(c1, c2, t):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def render_snake(svg, defs, rnd):
-    shape_fn = rnd.choice(SHAPES)
-    pts = shape_fn(W / 2, H / 2, rnd)
-    path_d = closed_catmull_rom_bezier(pts)
+def generate(out_path, repos, seed=None):
+    rnd = random.Random(seed)
+    n = len(repos)
 
+    card_size = 108
+    pts = poisson_scatter(n, W, H, min_dist=card_size * 1.25, margin=90, rnd=rnd)
+    while len(pts) < n:
+        pts.append((rnd.uniform(90, W - 90), rnd.uniform(90, H - 90)))
+
+    order = nearest_neighbor_tour(pts, rnd)
+    ordered_pts = [pts[i] for i in order]
+    ordered_repos = [repos[i] for i in order]
+
+    path_d = closed_catmull_rom_bezier(ordered_pts)
+    key_points, key_times = cumulative_key_points(ordered_pts)
+    kp_str = ";".join(f"{k:.5f}" for k in key_points)
+    kt_str = ";".join(f"{k:.5f}" for k in key_times)
+    total_dur = n * PER_CARD_T
+
+    defs = []
+    body = []
+
+    body.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}" rx="14"/>')
+    for gy in range(0, H, 24):
+        for gx in range(0, W, 24):
+            body.append(f'<circle cx="{gx}" cy="{gy}" r="1" fill="#1c2530"/>')
+
+    # ---- cards: plain axis-aligned squares, no rotation. Each vanishes the
+    # instant the snake head's timing (idx * PER_CARD_T) reaches it, and
+    # reappears when the loop restarts.
+    defs.append(
+        '<filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">'
+        '<feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>'
+        "</filter>"
+    )
+    defs.append(
+        '<filter id="glowBlur" x="-100%" y="-100%" width="300%" height="300%">'
+        '<feGaussianBlur stdDeviation="14"/>'
+        "</filter>"
+    )
+    for i, r in enumerate(ordered_repos):
+        c1, c2 = rnd.choice(GRADIENT_PAIRS)
+        angle = rnd.uniform(0, 360)
+        defs.append(
+            f'<linearGradient id="grad{i}" gradientTransform="rotate({angle:.0f})">'
+            f'<stop offset="0%" stop-color="{c1}"/>'
+            f'<stop offset="100%" stop-color="{c2}"/>'
+            "</linearGradient>"
+        )
+        cx, cy = ordered_pts[i]
+        lang_color = LANG_COLOR.get(r["language"], TEXT_DIM)
+        eat_t = i * PER_CARD_T
+        vanish_end = min(eat_t + 0.18, total_dur)
+        rf_eat = eat_t / total_dur
+        rf_vanish = vanish_end / total_dur
+
+        body.append(f'<g transform="translate({cx:.1f},{cy:.1f})">')
+        body.append(
+            '<animateTransform attributeName="transform" type="scale" additive="sum" '
+            f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="spline" '
+            f'keyTimes="0;{rf_eat:.5f};{rf_vanish:.5f};1" values="1;1;0.15;0.15" '
+            'keySplines="0.4 0 0.2 1;0.4 0 0.6 1;0 0 1 1"/>'
+        )
+        body.append(
+            '<animate attributeName="opacity" '
+            f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="discrete" '
+            f'keyTimes="0;{rf_eat:.5f};{rf_vanish:.5f};1" values="1;1;0;0"/>'
+        )
+        body.append(f'<circle cx="{card_size*0.3:.1f}" cy="{-card_size*0.3:.1f}" r="{card_size*0.42:.1f}" fill="{c2}" opacity="0.30" filter="url(#glowBlur)"/>')
+        body.append('<g filter="url(#cardShadow)">')
+        body.append(f'<path d="{square_path(card_size, 20)}" fill="#161b22"/>')
+        body.append(f'<path d="{square_path(card_size, 20)}" fill="none" stroke="url(#grad{i})" stroke-width="1.8"/>')
+        body.append("</g>")
+
+        tx, ty = -card_size / 2 + 12, -card_size / 2 + 22
+        body.append(
+            f'<text x="{tx:.1f}" y="{ty:.1f}" font-family="{FONT}" font-size="11.5" '
+            f'font-weight="bold" fill="{TEXT_PRIMARY}">{esc(truncate(r["name"], 14))}</text>'
+        )
+        body.append(f'<circle cx="{tx+5:.1f}" cy="{ty+18:.1f}" r="3.2" fill="{lang_color}"/>')
+        body.append(
+            f'<text x="{tx+13:.1f}" y="{ty+22:.1f}" font-family="{FONT}" font-size="9.5" '
+            f'fill="{TEXT_DIM}">{esc(truncate(r["language"], 12))}</text>'
+        )
+        body.append(
+            f'<text x="{tx:.1f}" y="{ty+38:.1f}" font-family="{FONT}" font-size="9.5" '
+            f'fill="{c2}">&#9733; {r["stars"]}</text>'
+        )
+        body.append("</g>")
+
+    # ---- snake: same path, growing in scale across the lap as it eats
     defs.append(
         '<filter id="glow" x="-60%" y="-60%" width="220%" height="220%">'
         '<feGaussianBlur stdDeviation="4" result="blur"/>'
@@ -280,21 +271,28 @@ def render_snake(svg, defs, rnd):
         "</filter>"
     )
 
+    body.append('<g transform-origin="{}px {}px">'.format(W / 2, H / 2))
+    body.append(
+        '<animateTransform attributeName="transform" type="scale" additive="sum" '
+        f'dur="{total_dur:.3f}s" repeatCount="indefinite" calcMode="linear" '
+        f'values="{GROWTH_START_SCALE};{GROWTH_END_SCALE}"/>'
+    )
+
     for i in range(N_SEGMENTS - 1, -1, -1):
         t = i / (N_SEGMENTS - 1)
         r = HEAD_R + (TAIL_R - HEAD_R) * (t ** 1.4)
         delay = (N_SEGMENTS - 1 - i) * SEG_GAP_T
-        svg.append('<g filter="url(#shadowBlur)">')
-        svg.append(
-            f'<animateMotion dur="{LOOP_DUR:.3f}s" repeatCount="indefinite" '
-            f'begin="-{delay:.3f}s" calcMode="linear">'
+        body.append('<g filter="url(#shadowBlur)">')
+        body.append(
+            f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+            f'begin="-{delay:.3f}s" calcMode="linear" keyPoints="{kp_str}" keyTimes="{kt_str}">'
             f'<mpath href="#loopPath"/></animateMotion>'
         )
-        svg.append(
+        body.append(
             f'<ellipse cx="0" cy="{r*0.7:.1f}" rx="{r*0.9:.1f}" ry="{r*0.42:.1f}" '
             f'fill="{SHADOW}" opacity="0.5"/>'
         )
-        svg.append("</g>")
+        body.append("</g>")
 
     for i in range(N_SEGMENTS - 1, -1, -1):
         t = i / (N_SEGMENTS - 1)
@@ -304,14 +302,14 @@ def render_snake(svg, defs, rnd):
         color = lerp_color(ACCENT, ACCENT_DIM, t)
         is_head = i == 0
 
-        svg.append("<g>")
-        svg.append(
-            f'<animateMotion dur="{LOOP_DUR:.3f}s" repeatCount="indefinite" '
-            f'begin="-{delay:.3f}s" rotate="auto" calcMode="linear">'
+        body.append("<g>")
+        body.append(
+            f'<animateMotion dur="{total_dur:.3f}s" repeatCount="indefinite" '
+            f'begin="-{delay:.3f}s" rotate="auto" calcMode="linear" keyPoints="{kp_str}" keyTimes="{kt_str}">'
             f'<mpath href="#loopPath"/></animateMotion>'
         )
-        svg.append("<g>")
-        svg.append(
+        body.append("<g>")
+        body.append(
             '<animateTransform attributeName="transform" type="translate" '
             f'dur="{UNDULATE_PERIOD:.3f}s" repeatCount="indefinite" '
             f'begin="-{undulate_delay:.3f}s" calcMode="spline" '
@@ -321,73 +319,58 @@ def render_snake(svg, defs, rnd):
         )
         rx = r
         ry = r * 0.72
-        svg.append(f'<ellipse rx="{rx:.1f}" ry="{ry:.1f}" fill="{color}"' + (' filter="url(#glow)"' if is_head else "") + "/>")
+        body.append(f'<ellipse rx="{rx:.1f}" ry="{ry:.1f}" fill="{color}"' + (' filter="url(#glow)"' if is_head else "") + "/>")
         if not is_head:
-            svg.append(f'<ellipse rx="{rx*0.5:.1f}" ry="{ry*0.35:.1f}" fill="{ACCENT_MID}" opacity="0.25"/>')
+            body.append(f'<ellipse rx="{rx*0.5:.1f}" ry="{ry*0.35:.1f}" fill="{ACCENT_MID}" opacity="0.25"/>')
         if is_head:
             blink_delay = rnd.uniform(0, BLINK_PERIOD)
-            svg.append(f'<g transform-origin="{rx*0.4:.1f}px {-ry*0.42:.1f}px">')
-            svg.append(
+            body.append(f'<g transform-origin="{rx*0.4:.1f}px {-ry*0.42:.1f}px">')
+            body.append(
                 '<animateTransform attributeName="transform" type="scale" '
                 f'dur="{BLINK_PERIOD:.3f}s" repeatCount="indefinite" '
                 f'begin="-{blink_delay:.3f}s" calcMode="discrete" '
                 'keyTimes="0;0.92;0.95;0.98;1" values="1,1;1,1;1,0.1;1,1;1,1"/>'
             )
-            svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{-ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
-            svg.append("</g>")
-            svg.append(f'<g transform-origin="{rx*0.4:.1f}px {ry*0.42:.1f}px">')
-            svg.append(
+            body.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{-ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
+            body.append("</g>")
+            body.append(f'<g transform-origin="{rx*0.4:.1f}px {ry*0.42:.1f}px">')
+            body.append(
                 '<animateTransform attributeName="transform" type="scale" '
                 f'dur="{BLINK_PERIOD:.3f}s" repeatCount="indefinite" '
                 f'begin="-{blink_delay:.3f}s" calcMode="discrete" '
                 'keyTimes="0;0.92;0.95;0.98;1" values="1,1;1,1;1,0.1;1,1;1,1"/>'
             )
-            svg.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
-            svg.append("</g>")
+            body.append(f'<ellipse cx="{rx*0.4:.1f}" cy="{ry*0.42:.1f}" rx="3.2" ry="3.6" fill="{EYE}"/>')
+            body.append("</g>")
             tongue_base_x = rx - 2
-            svg.append(f'<g transform-origin="{tongue_base_x:.1f}px 0px">')
-            svg.append(
+            body.append(f'<g transform-origin="{tongue_base_x:.1f}px 0px">')
+            body.append(
                 '<animateTransform attributeName="transform" type="scale" '
                 'dur="1.4s" repeatCount="indefinite" calcMode="linear" '
                 'keyTimes="0;0.58;0.66;0.8;0.88;1" '
                 'values="0,1;0,1;1,1;1,1;0,1;0,1"/>'
             )
-            svg.append(
+            body.append(
                 f'<path d="M {tongue_base_x:.1f},0 L {tongue_base_x+4:.1f},0" stroke="#ff5555" '
                 f'stroke-width="0.9" stroke-linecap="round"/>'
             )
-            svg.append(
+            body.append(
                 f'<path d="M {tongue_base_x+3:.1f},0 L {tongue_base_x+4.5:.1f},-0.9 '
                 f'M {tongue_base_x+3:.1f},0 L {tongue_base_x+4.5:.1f},0.9" '
                 f'stroke="#ff5555" stroke-width="0.8" stroke-linecap="round"/>'
             )
-            svg.append("</g>")
-        svg.append("</g>")
-        svg.append("</g>")
+            body.append("</g>")
+        body.append("</g>")
+        body.append("</g>")
 
-    svg.append(f'<path id="loopPath" d="{path_d}" fill="none" stroke="none"/>')
-
-
-# ---------- top-level assembly ----------
-
-def generate(out_path, repos, seed=None):
-    rnd = random.Random(seed)
-
-    defs = []
-    svg = []
-    svg.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}" rx="14"/>')
-    for gy in range(0, H, 24):
-        for gx in range(0, W, 24):
-            svg.append(f'<circle cx="{gx}" cy="{gy}" r="1" fill="#1c2530"/>')
-
-    render_cards(svg, defs, repos, rnd)
-    render_snake(svg, defs, rnd)
+    body.append("</g>")  # close growth wrapper
+    body.append(f'<path id="loopPath" d="{path_d}" fill="none" stroke="none"/>')
 
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
     out.append("<defs>")
     out.extend(defs)
     out.append("</defs>")
-    out.extend(svg)
+    out.extend(body)
     out.append("</svg>")
 
     with open(out_path, "w") as f:
