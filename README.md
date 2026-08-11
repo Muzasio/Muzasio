@@ -69,13 +69,10 @@
 <p align="center">
   <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31517664440" />
 </p>
-<tr>
-  <td colspan="2" align="center">
-    <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31517664440" alt="repo activity timeline" width="100%"/>
-  </td>
-</tr>
-<tr>
-  <td colspan="2" align="center">
-    <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31517664440" width="100%"/>
-  </td>
-</tr>
+
+
+<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31517664440" alt="repo activity timeline" width="100%"/>
+
+<p align="center">
+  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31517664440" width="100%"/>
+</p>
