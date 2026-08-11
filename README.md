@@ -62,11 +62,7 @@
 </p>
 
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake-dark.svg?ts=31517664440" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31517664440" />
-  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31517664440" width="100%" height="auto" />
-</picture>
+
 
 <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31517664440" alt="repo activity timeline"/>
 
