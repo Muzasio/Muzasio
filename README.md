@@ -61,6 +61,8 @@
   <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=muzasio&theme=matrix" alt="trophy" /></a>
 </p>
 
+<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg" alt="repo activity timeline"/>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake-dark.svg?ts=31517180978" />
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Muzasio/Muzasio/output/github-contribution-grid-snake.svg?ts=31517180978" />
