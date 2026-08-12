@@ -51,15 +51,6 @@
   <b>Forensight</b>: HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
 </p>
 
-<p align="center">
-  <!-- GitHub Stats -->
-  <img src="https://github-readme-stats.vercel.app/api?username=muzasio&show_icons=true&locale=en&bg_color=000000&title_color=39ff14&text_color=00ff00&icon_color=39ff14&border_color=000000" alt="muzasio stats" />
-</p>
-
-
-<p align="center">
-  <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=muzasio&theme=matrix" alt="trophy" /></a>
-</p>
 
 
 
