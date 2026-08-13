@@ -1,14 +1,14 @@
 <p align="center">
-  <a href="https://git.io/typing-svg">
-    <img
-      src="https://readme-typing-svg.herokuapp.com?color=39FF14&center=true&vCenter=true&width=1200&height=200&fontSize=40&lines=%24+whoami+%E2%86%92+Muzasio;root%40cyberlab:~%23+Security+Researcher;%3E+cat+%2Fetc%2Fskills+%E2%86%92+Pentesting+%7C+Python+%7C+Bash;%3E+.%2Fscan.sh+running;Access+Granted...;Researcher+%7C+Pentester+%7C+Builder"
-      alt="Typing SVG"
-    />
-  </a>
+  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=0" alt="about me"/>
 </p>
 
 <!-- Profile views -->
 <p align="right"> <img src="https://komarev.com/ghpvc/?username=muzasio&label=Profile%20views&color=0e75b6&style=flat" alt="muzasio" /> </p>
+
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=0" alt="about me"/>
+</p>
 
 <h3 align="center">🧑‍💻 About Me</h3>
 <p align="center">
