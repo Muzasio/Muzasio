@@ -6,9 +6,7 @@
 <p align="right"> <img src="https://komarev.com/ghpvc/?username=muzasio&label=Profile%20views&color=0e75b6&style=flat" alt="muzasio" /> </p>
 
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=0" alt="about me"/>
-</p>
+
 
 <h3 align="center">🧑‍💻 About Me</h3>
 <p align="center">
@@ -51,7 +49,9 @@
   <b>Forensight</b>: HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
 </p>
 
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=0" alt="currently working on"/>
+</p>
 
 
 
