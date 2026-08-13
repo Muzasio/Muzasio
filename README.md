@@ -55,11 +55,11 @@
 
 
 
-<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31655733631" alt="repo activity timeline"/>
+<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31734048923" alt="repo activity timeline"/>
 <!-- Time Line -->
 <p align="center">
   <!-- Snake Animation-->
-  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31655733631" />
+  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31734048923" />
 </p>
 
 
