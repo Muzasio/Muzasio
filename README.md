@@ -11,7 +11,6 @@
 <h3 align="center">🧑‍💻 About Me</h3>
 <p align="center">
   🔐 Security researcher & pentester<br/>
-  🧠 Building Forensight: host-based intrusion detection & cloud VM forensics<br/>
   🐍 Python + Bash automation<br/>
   📡 Root-causing bugs, not just patching them
 </p>
