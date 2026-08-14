@@ -1,37 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 108" width="780" height="108" font-family="'Courier New', monospace">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 132" width="780" height="132" font-family="'JetBrains Mono','Fira Code','Consolas','Courier New',monospace">
 <defs>
-<linearGradient id="accentFade" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#39ff14" stop-opacity="0.9"/><stop offset="100%" stop-color="#39ff14" stop-opacity="0.15"/></linearGradient>
-<filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+<filter id="ambientBlur" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="26"/></filter>
+<filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#000000" flood-opacity="0.4"/></filter>
+<filter id="badgeGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="6"/></filter>
+<clipPath id="winClip"><rect x="8" y="8" width="764" height="116" rx="12"/></clipPath>
 </defs>
-<rect x="0" y="0" width="780" height="108" rx="12" fill="#11161b" stroke="#1c232b"/>
-<rect x="0" y="0" width="4" height="108" rx="2" fill="#39ff14"><animate attributeName="opacity" values="1;0.4;1" dur="2.2s" repeatCount="indefinite"/></rect>
-<circle cx="46" cy="54" r="26" fill="#39ff14" opacity="0.12"/>
-<circle cx="46" cy="54" r="26" fill="none" stroke="#39ff14" stroke-width="1.4" opacity="0.6"/>
-<text x="46" y="62" font-size="22" text-anchor="middle">🧠</text>
-<text x="90" y="30" font-size="9" fill="#8b949e" letter-spacing="1.5">CURRENTLY WORKING ON</text>
-<text x="90" y="52" font-size="16" font-weight="bold" fill="#e6edf3">Forensight</text>
-<text x="90" y="70" font-size="11" fill="#e6edf3">HIDS &amp; cloud VM workload forensics research</text>
-<text x="90" y="86" font-size="9.5" fill="#8b949e">ADFA-LD evaluation, hybrid ML/heuristic detection</text>
-<g transform="translate(660.0,18)">
-<rect width="104.0" height="18" rx="9" fill="#39ff14" opacity="0.1"/>
-<rect width="104.0" height="18" rx="9" fill="none" stroke="#155c0a"/>
-<text x="52.0" y="13" font-size="9" fill="#39ff14" text-anchor="middle">Cloud Forensics</text>
+<rect x="0" y="0" width="780" height="132" rx="14" fill="#0d1117"/>
+<rect x="8" y="8" width="764" height="116" rx="12" fill="#11161b" stroke="#1c232b" filter="url(#cardShadow)"/>
+<g clip-path="url(#winClip)">
+<circle cx="78" cy="66" r="70" fill="#39ff14" opacity="0.07" filter="url(#ambientBlur)"><animate attributeName="cy" values="28;104;28" dur="12s" repeatCount="indefinite"/></circle>
+<circle cx="620" cy="54" r="50" fill="#39ff14" opacity="0.05" filter="url(#ambientBlur)"><animate attributeName="cx" values="560;680;560" dur="15s" repeatCount="indefinite"/></circle>
 </g>
-<g transform="translate(616.2,18)">
-<rect width="35.8" height="18" rx="9" fill="#39ff14" opacity="0.1"/>
-<rect width="35.8" height="18" rx="9" fill="none" stroke="#155c0a"/>
-<text x="17.9" y="13" font-size="9" fill="#39ff14" text-anchor="middle">HIDS</text>
+<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" fill="freeze"/>
+<circle cx="64" cy="66" r="35" fill="#39ff14" opacity="0.18" filter="url(#badgeGlow)"/>
+<circle cx="64" cy="66" r="27" fill="#39ff14" opacity="0.1"/>
+<circle cx="64" cy="66" r="27" fill="none" stroke="#39ff14" stroke-width="1.4" opacity="0.7"/>
+<text x="64" y="74" font-size="24" text-anchor="middle">🧠</text>
+<text x="115" y="35" font-size="10" fill="#8b949e" letter-spacing="1.6" font-weight="600">CURRENTLY WORKING ON</text>
+<text x="115" y="58" font-size="18" font-weight="700" fill="#f0f3f6" letter-spacing="0.2">Forensight</text>
+<text x="115" y="77" font-size="12.5" font-weight="500" fill="#f0f3f6">HIDS &amp; cloud VM workload forensics research</text>
+<text x="115" y="95" font-size="10.5" fill="#8b949e">ADFA-LD evaluation, hybrid ML/heuristic detection</text>
+<circle cx="115.0" cy="105.0" r="3.4" fill="#39ff14"><animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/></circle>
+<text x="126.0" y="108.0" font-size="8.5" fill="#8b949e" letter-spacing="1.2" font-weight="600">ACTIVE</text>
+<g transform="translate(649.0,28)">
+<rect width="115.0" height="21" rx="10.5" fill="#39ff14" opacity="0.12"/>
+<rect width="115.0" height="21" rx="10.5" fill="none" stroke="#155c0a" stroke-width="1.1"/>
+<text x="57.5" y="14.5" font-size="9.5" font-weight="700" fill="#39ff14" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Cloud Forensics</text>
 </g>
-<g transform="translate(584.8,18)">
-<rect width="23.4" height="18" rx="9" fill="#39ff14" opacity="0.1"/>
-<rect width="23.4" height="18" rx="9" fill="none" stroke="#155c0a"/>
-<text x="11.7" y="13" font-size="9" fill="#39ff14" text-anchor="middle">ML</text>
+<g transform="translate(596.6,28)">
+<rect width="42.4" height="21" rx="10.5" fill="#39ff14" opacity="0.12"/>
+<rect width="42.4" height="21" rx="10.5" fill="none" stroke="#155c0a" stroke-width="1.1"/>
+<text x="21.2" y="14.5" font-size="9.5" font-weight="700" fill="#39ff14" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">HIDS</text>
 </g>
-<g transform="translate(528.6,18)">
-<rect width="48.2" height="18" rx="9" fill="#39ff14" opacity="0.1"/>
-<rect width="48.2" height="18" rx="9" fill="none" stroke="#155c0a"/>
-<text x="24.1" y="13" font-size="9" fill="#39ff14" text-anchor="middle">Python</text>
+<g transform="translate(557.4,28)">
+<rect width="29.2" height="21" rx="10.5" fill="#39ff14" opacity="0.12"/>
+<rect width="29.2" height="21" rx="10.5" fill="none" stroke="#155c0a" stroke-width="1.1"/>
+<text x="14.6" y="14.5" font-size="9.5" font-weight="700" fill="#39ff14" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">ML</text>
 </g>
-<rect x="90" y="94" width="674" height="2" rx="1" fill="#1c232b"/>
-<rect x="90" y="94" width="90" height="2" rx="1" fill="url(#accentFade)"><animate attributeName="x" values="90;674;90" dur="5s" repeatCount="indefinite"/></rect>
+<g transform="translate(491.8,28)">
+<rect width="55.6" height="21" rx="10.5" fill="#39ff14" opacity="0.12"/>
+<rect width="55.6" height="21" rx="10.5" fill="none" stroke="#155c0a" stroke-width="1.1"/>
+<text x="27.8" y="14.5" font-size="9.5" font-weight="700" fill="#39ff14" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Python</text>
+</g>
+</g>
 </svg>
