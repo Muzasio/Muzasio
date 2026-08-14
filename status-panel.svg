@@ -8,39 +8,39 @@
 <rect x="0" y="0" width="780" height="132" rx="14" fill="#0d1117"/>
 <rect x="8" y="8" width="764" height="116" rx="12" fill="#11161b" stroke="#1c232b" filter="url(#cardShadow)"/>
 <g clip-path="url(#winClip)">
-<circle cx="78" cy="66" r="70" fill="#e5484d" opacity="0.07" filter="url(#ambientBlur)"><animate attributeName="cy" values="28;104;28" dur="12s" repeatCount="indefinite"/></circle>
-<circle cx="620" cy="54" r="50" fill="#e5484d" opacity="0.05" filter="url(#ambientBlur)"><animate attributeName="cx" values="560;680;560" dur="15s" repeatCount="indefinite"/></circle>
+<circle cx="78" cy="66" r="70" fill="#f85149" opacity="0.07" filter="url(#ambientBlur)"><animate attributeName="cy" values="28;104;28" dur="12s" repeatCount="indefinite"/></circle>
+<circle cx="620" cy="54" r="50" fill="#f85149" opacity="0.05" filter="url(#ambientBlur)"><animate attributeName="cx" values="560;680;560" dur="15s" repeatCount="indefinite"/></circle>
 </g>
 <g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" fill="freeze"/>
-<circle cx="64" cy="66" r="35" fill="#e5484d" opacity="0.18" filter="url(#badgeGlow)"/>
-<circle cx="64" cy="66" r="27" fill="#e5484d" opacity="0.1"/>
-<circle cx="64" cy="66" r="27" fill="none" stroke="#e5484d" stroke-width="1.4" opacity="0.7"/>
+<circle cx="64" cy="66" r="35" fill="#f85149" opacity="0.18" filter="url(#badgeGlow)"/>
+<circle cx="64" cy="66" r="27" fill="#f85149" opacity="0.1"/>
+<circle cx="64" cy="66" r="27" fill="none" stroke="#f85149" stroke-width="1.4" opacity="0.7"/>
 <text x="64" y="74" font-size="24" text-anchor="middle">🧠</text>
 <text x="115" y="35" font-size="10" fill="#8b949e" letter-spacing="1.6" font-weight="600">CURRENTLY WORKING ON</text>
 <text x="115" y="58" font-size="18" font-weight="700" fill="#f0f3f6" letter-spacing="0.2">Forensight</text>
 <text x="115" y="77" font-size="12.5" font-weight="500" fill="#f0f3f6">HIDS &amp; cloud VM workload forensics research</text>
 <text x="115" y="95" font-size="10.5" fill="#8b949e">ADFA-LD evaluation, hybrid ML/heuristic detection</text>
-<circle cx="115.0" cy="105.0" r="3.4" fill="#e5484d"><animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/></circle>
+<circle cx="115.0" cy="105.0" r="3.4" fill="#f85149"><animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/></circle>
 <text x="126.0" y="108.0" font-size="8.5" fill="#8b949e" letter-spacing="1.2" font-weight="600">ACTIVE</text>
 <g transform="translate(649.0,28)">
-<rect width="115.0" height="21" rx="10.5" fill="#e5484d" opacity="0.12"/>
-<rect width="115.0" height="21" rx="10.5" fill="none" stroke="#7d2629" stroke-width="1.1"/>
-<text x="57.5" y="14.5" font-size="9.5" font-weight="700" fill="#e5484d" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Cloud Forensics</text>
+<rect width="115.0" height="21" rx="10.5" fill="#f85149" opacity="0.12"/>
+<rect width="115.0" height="21" rx="10.5" fill="none" stroke="#da3633" stroke-width="1.1"/>
+<text x="57.5" y="14.5" font-size="9.5" font-weight="700" fill="#f85149" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Cloud Forensics</text>
 </g>
 <g transform="translate(596.6,28)">
-<rect width="42.4" height="21" rx="10.5" fill="#e5484d" opacity="0.12"/>
-<rect width="42.4" height="21" rx="10.5" fill="none" stroke="#7d2629" stroke-width="1.1"/>
-<text x="21.2" y="14.5" font-size="9.5" font-weight="700" fill="#e5484d" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">HIDS</text>
+<rect width="42.4" height="21" rx="10.5" fill="#f85149" opacity="0.12"/>
+<rect width="42.4" height="21" rx="10.5" fill="none" stroke="#da3633" stroke-width="1.1"/>
+<text x="21.2" y="14.5" font-size="9.5" font-weight="700" fill="#f85149" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">HIDS</text>
 </g>
 <g transform="translate(557.4,28)">
-<rect width="29.2" height="21" rx="10.5" fill="#e5484d" opacity="0.12"/>
-<rect width="29.2" height="21" rx="10.5" fill="none" stroke="#7d2629" stroke-width="1.1"/>
-<text x="14.6" y="14.5" font-size="9.5" font-weight="700" fill="#e5484d" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">ML</text>
+<rect width="29.2" height="21" rx="10.5" fill="#f85149" opacity="0.12"/>
+<rect width="29.2" height="21" rx="10.5" fill="none" stroke="#da3633" stroke-width="1.1"/>
+<text x="14.6" y="14.5" font-size="9.5" font-weight="700" fill="#f85149" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">ML</text>
 </g>
 <g transform="translate(491.8,28)">
-<rect width="55.6" height="21" rx="10.5" fill="#e5484d" opacity="0.12"/>
-<rect width="55.6" height="21" rx="10.5" fill="none" stroke="#7d2629" stroke-width="1.1"/>
-<text x="27.8" y="14.5" font-size="9.5" font-weight="700" fill="#e5484d" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Python</text>
+<rect width="55.6" height="21" rx="10.5" fill="#f85149" opacity="0.12"/>
+<rect width="55.6" height="21" rx="10.5" fill="none" stroke="#da3633" stroke-width="1.1"/>
+<text x="27.8" y="14.5" font-size="9.5" font-weight="700" fill="#f85149" text-anchor="middle" style="text-transform:uppercase" letter-spacing="0.4">Python</text>
 </g>
 </g>
 </svg>
