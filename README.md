@@ -1,4 +1,4 @@
-<p align="center">
+<img width="1342" height="824" alt="image" src="https://github.com/user-attachments/assets/9e9c6d45-fa69-41c6-861d-e5ef385d3b83" /><p align="center">
   <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=31835640426" alt="about me"/>
 </p>
 
@@ -46,9 +46,8 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=31835640426" alt="currently working on"/>
+  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=31834582502" alt="currently working on"/>
 </p>
-
 
 
 <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31835640426" alt="repo activity timeline"/>
