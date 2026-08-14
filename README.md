@@ -7,14 +7,6 @@
 
 
 
-
-<h3 align="center">🧑‍💻 About Me</h3>
-<p align="center">
-  🔐 Security researcher & pentester<br/>
-  🐍 Python + Bash automation<br/>
-  📡 Root-causing bugs, not just patching them
-</p>
-
 <h3 align="center">Languages & Tools</h3>
 <p align="center">
   <!-- Programming & Scripting -->
