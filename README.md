@@ -8,29 +8,26 @@
 <!--------------------------->
 
 <h3 align="center">🛠️ Tech Arsenal</h3>
-<table align="center">
-<tr>
-<td align="right"><b>Languages & Scripting</b></td>
-<td>
+
+<p align="center"><sub><b>LANGUAGES & SCRIPTING</b></sub></p>
+<p align="center">
   <img src="https://img.shields.io/badge/Git-black?style=for-the-badge&logo=git&logoColor=F05032" />
   <img src="https://img.shields.io/badge/Python-black?style=for-the-badge&logo=python&logoColor=3776AB" />
   <img src="https://img.shields.io/badge/C++-black?style=for-the-badge&logo=cplusplus&logoColor=00599C" />
   <img src="https://img.shields.io/badge/Bash-black?style=for-the-badge&logo=gnubash&logoColor=4EAA25" />
   <img src="https://img.shields.io/badge/Markdown-black?style=for-the-badge&logo=markdown&logoColor=ffffff" />
-</td>
-</tr>
-<tr>
-<td align="right"><b>Platforms & OS</b></td>
-<td>
+</p>
+
+<p align="center"><sub><b>PLATFORMS & OS</b></sub></p>
+<p align="center">
   <img src="https://img.shields.io/badge/Docker-black?style=for-the-badge&logo=docker&logoColor=00aaff" />
   <img src="https://img.shields.io/badge/Linux-black?style=for-the-badge&logo=linux&logoColor=FCC624" />
   <img src="https://img.shields.io/badge/Ubuntu-black?style=for-the-badge&logo=ubuntu&logoColor=E95420" />
   <img src="https://img.shields.io/badge/Qt-black?style=for-the-badge&logo=qt&logoColor=41CD52" />
-</td>
-</tr>
-<tr>
-<td align="right"><b>Cybersecurity Arsenal</b></td>
-<td>
+</p>
+
+<p align="center"><sub><b>CYBERSECURITY ARSENAL</b></sub></p>
+<p align="center">
   <img src="https://img.shields.io/badge/Hack_The_Box-black?style=for-the-badge&logo=hackthebox&logoColor=00ff00" />
   <img src="https://img.shields.io/badge/Kali_Linux-black?style=for-the-badge&logo=kalilinux&logoColor=00aaff" />
   <img src="https://img.shields.io/badge/Parrot_OS-black?style=for-the-badge&logo=linux&logoColor=39ff14" />
@@ -40,16 +37,13 @@
   <img src="https://img.shields.io/badge/Nmap-black?style=for-the-badge&logo=nmap&logoColor=39ff14" />
   <img src="https://img.shields.io/badge/OWASP-black?style=for-the-badge&logo=owasp&logoColor=yellow" />
   <img src="https://img.shields.io/badge/VMware-black?style=for-the-badge&logo=vmware&logoColor=39ff14" />
-</td>
-</tr>
-<tr>
-<td align="right"><b>Extras</b></td>
-<td>
+</p>
+
+<p align="center"><sub><b>EXTRAS</b></sub></p>
+<p align="center">
   <img src="https://img.shields.io/badge/Blender-black?style=for-the-badge&logo=blender&logoColor=F5792A" />
   <img src="https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord&logoColor=5865F2" />
-</td>
-</tr>
-</table>
+</p>
 
 
 
