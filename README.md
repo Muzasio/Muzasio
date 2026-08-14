@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=31777862957" alt="about me"/>
+  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=31777862957" alt="about me"/>
 </p>
 
 <!-- Profile views -->
