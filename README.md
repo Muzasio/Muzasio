@@ -40,10 +40,6 @@
 
 
 
-<h3 align="center">Currently working on</h3>
-<p align="center">
-  <b>Forensight</b>: HIDS & cloud VM workload forensics research (ADFA-LD evaluation, hybrid ML/heuristic detection)<br/>
-</p>
 
 <p align="center">
   <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=31882002581" alt="currently working on"/>
