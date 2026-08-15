@@ -5,6 +5,7 @@
 <!-- Profile views -->
 <p align="right"> <img src="https://komarev.com/ghpvc/?username=muzasio&label=Profile%20views&color=0e75b6&style=flat" alt="muzasio" /> </p>
 
+<p align="right"> <img src="https://komarev.com/ghpvc/?username=muzasio&label=Profile%20views&color=d6002b&style=flat-square" alt="muzasio" /> </p>
 <!--------------------------->
 
 <p align="center">
