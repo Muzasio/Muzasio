@@ -7,7 +7,6 @@
 
 <!--------------------------->
 
-<h3 align="center">🛠️ Tech Arsenal</h3>
 <p align="center">
   <img height="34" src="https://img.shields.io/badge/Python-black?style=for-the-badge&logo=python&logoColor=3776AB" />
   <img height="34" src="https://img.shields.io/badge/C++-black?style=for-the-badge&logo=cplusplus&logoColor=00599C" />
