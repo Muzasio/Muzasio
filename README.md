@@ -1,5 +1,5 @@
 
-  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=31917248395" alt="about me"/>
+  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/about-animated.svg?ts=31949153400" alt="about me"/>
 </p>
 
 <!-- Profile views -->
@@ -41,15 +41,15 @@
 
 
 <p align="center">
-  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=31917248395" alt="currently working on"/>
+  <img width="100%" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/status-panel.svg?ts=31949153400" alt="currently working on"/>
 </p>
 
 
-<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31917248395" alt="repo activity timeline"/>
+<img src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-timeline.svg?ts=31949153400" alt="repo activity timeline"/>
 <!-- Time Line -->
 <p align="center">
   <!-- Snake Animation-->
-  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31917248395" />
+  <img alt="repo snake animation" src="https://raw.githubusercontent.com/Muzasio/Muzasio/output/repo-snake.svg?ts=31949153400" />
 </p>
 
 
